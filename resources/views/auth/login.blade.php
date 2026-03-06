@@ -4,7 +4,7 @@
 
 <div class="container d-flex justify-content-center align-items-center" style="height:80vh;">
 
-    <div class="card shadow col-12 col-md-6 col-lg-4">
+    <div class="card shadow col-12 col-lg-4">
 
         <div class="card-header text-center bg-warning text-dark">
             <h4>SIMEPP - INICIAR SESIÓN</h4>
