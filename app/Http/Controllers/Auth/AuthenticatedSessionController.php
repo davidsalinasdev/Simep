@@ -29,6 +29,20 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Usuario logueado
+        $user = Auth::user();
+
+        // Si es delegado de recinto
+        if ($user->rol === 'delegado_recinto') {
+            return redirect('/delegado/create');
+        }
+
+        // Si es delegado de recinto
+        if ($user->rol === 'consulta') {
+            return redirect('/consultas/consulta');
+        }
+
+        // otros usuarios
         return redirect()->intended(RouteServiceProvider::HOME);
     }
 

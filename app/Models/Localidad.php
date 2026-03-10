@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Recinto extends Model
+class Localidad extends Model
 {
     protected $table = 'recintos';
 
@@ -12,12 +12,11 @@ class Recinto extends Model
 
     protected $fillable = [
         'nombre',
-        'direccion',
         'id_municipio'
     ];
 
-    public function localidad()
+    public function municipio()
     {
-        return $this->belongsTo(localidad::class, 'id_localidad', 'id_localidad');
+        return $this->belongsTo(Municipio::class, 'id_municipio', 'id_municipio');
     }
 }

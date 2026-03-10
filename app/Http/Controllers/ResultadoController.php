@@ -3,76 +3,127 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Mesa;
-use App\Models\Resultado;
-use App\Models\DetalleResultado;
-use App\Models\VotoEspecial;
-use App\Models\Candidato;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class ResultadoController extends Controller
 {
 
-    public function create($id_mesa)
-    {
-
-        $mesa = Mesa::findOrFail($id_mesa);
-
-        $candidatos = Candidato::all();
-
-        return view('resultados.create', compact('mesa', 'candidatos'));
-    }
-
     public function store(Request $request)
     {
 
-        $mesa = Mesa::findOrFail($request->id_mesa);
 
-        if ($mesa->estado == 'enviado') {
-            return back()->with('error', 'Esta mesa ya fue registrada');
-        }
 
-        $suma = 0;
-
-        foreach ($request->votos as $v) {
-            $suma += $v;
-        }
-
-        $suma_total = $suma + $request->blancos + $request->nulos;
-
-        if ($suma_total != $request->total_papeletas) {
-            return back()->with('error', 'La suma de votos no coincide con total de papeletas');
-        }
-
-        $ruta = $request->file('imagen_acta')->store('actas', 'public');
-
-        $resultado = Resultado::create([
-            'id_mesa' => $mesa->id_mesa,
-            'id_usuario' => Auth::user()->id_usuario,
-            'imagen_acta' => $ruta,
-            'latitud' => $request->latitud,
-            'longitud' => $request->longitud
+        $request->validate([
+            'id_mesa' => 'required',
+            'imagen_acta' => 'required|image|mimes:jpg,jpeg,png|max:20480'
         ]);
 
-        foreach ($request->votos as $id_candidato => $votos) {
+        DB::beginTransaction();
 
-            DetalleResultado::create([
-                'id_resultado' => $resultado->id_resultado,
-                'id_candidato' => $id_candidato,
-                'votos' => $votos
+        try {
+            /* VALIDAR MESA */
+            $mesa = DB::table('mesas')
+                ->where('id_mesa', $request->id_mesa)
+                ->first();
+
+
+
+            // dd($request->id_mesa);
+            if (!$mesa || $mesa->estado != 'pendiente') {
+                return redirect()->back()
+                    ->with('error', 'Esta mesa ya fue registrada o no existe');
+            }
+
+
+            /* GUARDAR IMAGEN */
+
+            $imagen = $request->file('imagen_acta');
+
+            $nombre = time() . '.jpg';
+
+            $ruta = storage_path('app/public/actas/' . $nombre);
+
+            $manager = new ImageManager(new Driver());
+
+            $image = $manager->read($imagen)
+                ->scale(1200)
+                ->toJpeg(70);
+
+            $image->save($ruta);
+
+            $rutaImagen = 'actas/' . $nombre;
+
+
+            /* INSERTAR RESULTADO */
+            $id_resultado = DB::table('resultados')->insertGetId([
+
+                'id_mesa' => $request->id_mesa,
+                'id_usuario' => Auth::id(),
+                'fecha_envio' => now(),
+                'imagen_acta' => $rutaImagen,
+                'estado_validacion' => 'pendiente',
+                'created_at' => now(),
+                'updated_at' => now()
+
+            ], 'id_resultado'); // 👈 AQUI
+
+
+            /* GUARDAR VOTOS PARTIDOS */
+
+            foreach ($request->votos as $id_partido_cargo => $votos) {
+
+                DB::table('votos_partido')->insert([
+
+                    'id_resultado' => $id_resultado,
+                    'id_partido_cargo' => $id_partido_cargo,
+                    'votos' => $votos,
+                    'created_at' => now(),
+                    'updated_at' => now()
+
+                ]);
+            }
+
+
+            /* GUARDAR VOTOS ESPECIALES */
+
+            DB::table('votos_especiales')->insert([
+
+                'id_resultado' => $id_resultado,
+                'blancos' => $request->blancos,
+                'nulos' => $request->nulos,
+                'total_papeletas' => $request->total_papeletas,
+                'created_at' => now(),
+                'updated_at' => now()
+
             ]);
+
+
+            /* ACTUALIZAR MESA */
+
+            DB::table('mesas')
+                ->where('id_mesa', $request->id_mesa)
+                ->update([
+
+                    'estado' => 'enviado',
+                    'updated_at' => now()
+
+                ]);
+
+
+            DB::commit();
+
+            return redirect()->back()
+                ->with('success', 'Resultados registrados correctamente');
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            // return redirect()->back()
+            //     ->with('error', 'Error al guardar resultados');
+            dd($e);
         }
-
-        VotoEspecial::create([
-            'id_resultado' => $resultado->id_resultado,
-            'blancos' => $request->blancos,
-            'nulos' => $request->nulos,
-            'total_papeletas' => $request->total_papeletas
-        ]);
-
-        $mesa->estado = 'enviado';
-        $mesa->save();
-
-        return redirect('/dashboard')->with('success', 'Resultado registrado');
     }
 }

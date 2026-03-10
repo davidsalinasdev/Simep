@@ -51,4 +51,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+    public function recinto()
+    {
+        return $this->belongsTo(Recinto::class, 'id_recinto', 'id_recinto');
+    }
 }

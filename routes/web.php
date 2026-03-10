@@ -14,6 +14,8 @@ use App\Http\Controllers\ProvinciaController;
 use App\Http\Controllers\MunicipioController;
 use App\Http\Controllers\RecintoController;
 use App\Http\Controllers\DelegadoController;
+use Illuminate\Support\Facades\Auth;
+
 
 
 /*
@@ -31,28 +33,44 @@ use App\Http\Controllers\DelegadoController;
 //     return view('welcome');
 // });
 
+
+
 Route::get('/', function () {
-    return redirect('/login');
+
+    if (!Auth::check()) {
+        return redirect('/login');
+    }
+
+    $rol = Auth::user()->rol;
+
+    if ($rol == 'delegado_recinto') {
+
+        return redirect('/delegado/create');
+    } elseif ($rol == 'consulta') {
+
+        return redirect('/consultas/consulta');
+    } else {
+
+        return redirect('/login');
+    }
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/resultados', [ResultadoController::class, 'create'])->name('resultados.create');
+    Route::post('/resultados', [ResultadoController::class, 'store'])->name('resultados.store');
 });
 
 
 // Rutas Personalizadas para resultados
 
-Route::get('/resultados/{id_mesa}', [ResultadoController::class, 'create']);
-Route::post('/resultados', [ResultadoController::class, 'store']);
-
-
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth');
 
 
 Route::get('/partidos', [PartidoController::class, 'index']);
@@ -101,7 +119,7 @@ Route::get('/delegado/create', [DelegadoController::class, 'create']);
 Route::post('/delegado', [DelegadoController::class, 'store']);
 
 Route::get('/consultas', [ConsultaController::class, 'index']);
-Route::get('/consultas/consulta', [ConsultaController::class, 'consulta']);
+Route::get('/consultas/consulta', [ConsultaController::class, 'consulta'])->name('consulta');
 Route::post('/consultas', [ConsultaController::class, 'store']);
 
 

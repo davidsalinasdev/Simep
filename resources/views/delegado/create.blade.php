@@ -1,58 +1,105 @@
-@extends('layouts.guest')
+@extends('layouts.app')
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@php
+use Illuminate\Support\Facades\DB;
+
+$id_recinto = Auth::user()->id_recinto;
+
+$ubicacion = DB::table('recintos as r')
+->leftJoin('localidades as l','r.id_localidad','=','l.id_localidad')
+->leftJoin('municipios as m','l.id_municipio','=','m.id_municipio')
+->leftJoin('provincias as p','m.id_provincia','=','p.id_provincia')
+->leftJoin('departamentos as d','p.id_departamento','=','d.id_departamento')
+->select(
+'r.nombre as recinto',
+'l.nombre as localidad',
+'m.nombre as municipio',
+'m.id_municipio',
+'p.nombre as provincia',
+'d.nombre as departamento',
+'d.id_departamento'
+)
+->where('r.id_recinto',$id_recinto)
+->first();
+
+
+$mesas = DB::table('mesas')
+->where('id_recinto',$id_recinto)
+->where('estado','pendiente')
+->orderBy('numero_mesa')
+->get();
+
+
+if(Auth::user()->tipo_eleccion == 'Gobernador'){
+
+$partidos = DB::table('partido_cargo as pc')
+->join('partidos as p','pc.id_partido','=','p.id_partido')
+->join('cargos as c','pc.id_cargo','=','c.id_cargo')
+->where('c.nombre_cargo','Gobernador')
+->where('pc.id_departamento',$ubicacion->id_departamento)
+->whereNull('pc.id_municipio') // IMPORTANTE
+->select(
+'pc.id as id_partido_cargo',
+'p.nombre',
+'p.sigla'
+)
+->get();
+
+}else{
+
+$partidos = DB::table('partido_cargo as pc')
+->join('partidos as p','pc.id_partido','=','p.id_partido')
+->join('cargos as c','pc.id_cargo','=','c.id_cargo')
+->where('c.nombre_cargo','Alcalde')
+->where('pc.id_municipio',$ubicacion->id_municipio)
+->select(
+'pc.id as id_partido_cargo',
+'p.nombre',
+'p.sigla'
+)
+->get();
+
+}
+@endphp
+
+
 <div class="card shadow-lg">
 
     <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
 
         <h5 class="mb-0">
-            Registro de Resultados - SIMEP
+            Registro de Resultados del departamento de {{ $ubicacion->departamento }} - SIMEP - {{ Auth::user()->tipo_eleccion }}
         </h5>
 
         <div class="dropdown">
-
-            <button class="btn btn-dark dropdown-toggle"
-                type="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false">
-
-                David Salinas
-
+            <button class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown">
+                {{ Auth::user()->nombre }}
             </button>
 
             <ul class="dropdown-menu dropdown-menu-end">
-
-                <li class="dropdown-item-text text-muted">
-                    Usuario conectado
-                </li>
-
                 <li>
-                    <hr class="dropdown-divider">
-                </li>
-
-                <li>
-
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-
-                        <button class="dropdown-item text-danger">
+                        <button class="dropdown-item">
                             Cerrar sesión
                         </button>
-
                     </form>
-
                 </li>
-
             </ul>
-
         </div>
 
     </div>
 
     <div class="card-body">
 
-        <form method="POST" action="/resultados" enctype="multipart/form-data">
+        <form id="formResultados" method="POST" action="{{ route('resultados.store') }}" enctype="multipart/form-data">
+
             @csrf
 
-            <div class="row mb-4 align-items-end">
+            <div class="row mb-4">
 
                 <div class="col-md-3">
 
@@ -62,61 +109,58 @@
 
                         <option value="">-Seleccione mesa-</option>
 
-                        <option value="1">
-                            Mesa 1
+                        @foreach($mesas as $mesa)
+
+                        <option value="{{ $mesa->id_mesa }}">
+                            Mesa {{ $mesa->numero_mesa }}
                         </option>
+
+                        @endforeach
 
                     </select>
 
                 </div>
 
-                <div class="col-md-3">
 
+                <div class="col-md-3">
                     <label class="fw-bold">Provincia</label>
-                    <p>Cercado</p>
-
+                    <p>{{ $ubicacion->provincia }}</p>
                 </div>
 
                 <div class="col-md-3">
-
                     <label class="fw-bold">Municipio</label>
-                    <p>Cochabamba</p>
-
+                    <p>{{ $ubicacion->municipio }}</p>
                 </div>
 
                 <div class="col-md-3">
-
                     <label class="fw-bold">Recinto</label>
-                    <p>Sergio Almaraz Paz</p>
-
+                    <p>{{ $ubicacion->recinto }}</p>
                 </div>
 
             </div>
 
-            <!-- NÚMERO DE MESA GRANDE -->
 
-            <div id="mesaTitulo" class="text-center mb-4" style="display:none;">
 
-                <h1 class="text-danger fw-bold">
+            <div id="mesaTitulo" class="text-center mb-4" style="display:none">
+
+                <h1 class="text-danger">
                     NRO. MESA: <span id="numeroMesa"></span>
                 </h1>
 
             </div>
 
-            <!-- FORMULARIO OCULTO -->
 
-            <div id="formularioResultados" style="display:none;">
 
-                <hr>
+            <div id="formularioResultados" style="display:none">
 
-                <h5 class="mb-3 text-primary">Votos por Partido</h5>
+                <h5 class="text-primary">Votos por Partido</h5>
 
-                <table class="table table-striped">
+                <table class="table">
 
                     <thead class="table-dark">
                         <tr>
                             <th>Partido</th>
-                            <th width="200">Votos</th>
+                            <th>Votos</th>
                         </tr>
                     </thead>
 
@@ -138,10 +182,10 @@
 
                                 <input
                                     type="number"
-                                    name="votos[{{ $partido->id_partido }}]"
+                                    name="votos[{{ $partido->id_partido_cargo }}]"
                                     class="form-control votos"
-                                    min="0"
                                     value="0"
+                                    min="0"
                                     required>
 
                             </td>
@@ -154,65 +198,53 @@
 
                 </table>
 
-                <hr>
+
 
                 <h5 class="text-primary">Votos Especiales</h5>
 
                 <div class="row">
 
-                    <div class="col-lg-4">
-
-                        <label class="fw-bold">Blancos</label>
-
-                        <input type="number"
-                            name="blancos"
-                            class="form-control votos"
-                            value="0">
-
+                    <div class="col-md-4">
+                        <label>Blancos</label>
+                        <input type="number" name="blancos" class="form-control votos" value="0">
                     </div>
 
-                    <div class="col-lg-4">
-
-                        <label class="fw-bold">Nulos</label>
-
-                        <input type="number"
-                            name="nulos"
-                            class="form-control votos"
-                            value="0">
-
+                    <div class="col-md-4">
+                        <label>Nulos</label>
+                        <input type="number" name="nulos" class="form-control votos" value="0">
                     </div>
 
-                    <div class="col-lg-4">
-
-                        <label class="fw-bold">Total papeletas</label>
-
+                    <div class="col-md-4">
+                        <label>Total papeletas</label>
                         <input type="number"
                             name="total_papeletas"
+                            id="total_papeletas"
                             class="form-control"
-                            required>
-
+                            readonly>
                     </div>
 
                 </div>
 
+
                 <hr>
 
-                <h5 class="text-primary">Foto del Acta</h5>
+                <label>Foto del Acta</label>
+
 
                 <input
                     type="file"
                     name="imagen_acta"
+                    id="imagen_acta"
                     class="form-control"
                     accept="image/*"
                     capture="environment"
                     required>
 
+
                 <hr>
 
-                <button class="btn btn-success btn-lg w-100">
-
+                <button type="button" id="btnGuardar" class="btn btn-success w-100">
                     Guardar Resultados
-
                 </button>
 
             </div>
@@ -223,19 +255,138 @@
 
 </div>
 
+@if ($errors->any())
+
 <script>
-    document.getElementById("mesaSelect").addEventListener("change", function() {
+    Swal.fire({
+        icon: 'error',
+        title: 'Error al guardar',
+        html: `{!! implode('<br>', $errors->all()) !!}`
+    });
+</script>
 
-        let texto = this.options[this.selectedIndex].text;
+@endif
 
-        if (this.value !== "") {
+@if(session('success'))
 
-            document.getElementById("formularioResultados").style.display = "block";
-            document.getElementById("mesaTitulo").style.display = "block";
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Registro exitoso',
+        text: '{{ session("success") }}'
+    });
+</script>
 
-            document.getElementById("numeroMesa").innerText = texto.replace("Mesa ", "");
+@endif
+
+
+@if(session('error'))
+
+<script>
+    Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: '{{ session("error") }}'
+    });
+</script>
+
+@endif
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+        const mesaSelect = document.getElementById("mesaSelect");
+
+        mesaSelect.addEventListener("change", function() {
+
+            const texto = this.options[this.selectedIndex].text;
+
+            if (this.value != "") {
+
+                document.getElementById("formularioResultados").style.display = "block";
+                document.getElementById("mesaTitulo").style.display = "block";
+
+                document.getElementById("numeroMesa").innerText =
+                    texto.replace("Mesa ", "");
+
+            } else {
+
+                document.getElementById("formularioResultados").style.display = "none";
+                document.getElementById("mesaTitulo").style.display = "none";
+
+            }
+
+        });
+
+
+
+        document.getElementById("btnGuardar").addEventListener("click", function() {
+
+            const imagen = document.querySelector("input[name='imagen_acta']").value;
+
+            if (imagen == "") {
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Foto obligatoria",
+                    text: "Debe subir la foto del acta antes de guardar"
+                });
+
+                return;
+
+            }
+
+            Swal.fire({
+                title: "¿Guardar resultados?",
+                text: "Verifique que los datos sean correctos",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Sí, guardar",
+                cancelButtonText: "Cancelar"
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+
+                    Swal.fire({
+                        title: "Guardando resultados...",
+                        text: "Espere por favor",
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    document.querySelector("#formResultados").submit();
+
+                }
+
+            });
+
+        });
+
+
+
+        function calcularTotal() {
+
+            let total = 0;
+
+            document.querySelectorAll(".votos").forEach(function(input) {
+
+                total += parseInt(input.value) || 0;
+
+            });
+
+            document.getElementById("total_papeletas").value = total;
 
         }
+
+
+        document.querySelectorAll(".votos").forEach(function(input) {
+
+            input.addEventListener("input", calcularTotal);
+
+        });
+
 
     });
 </script>

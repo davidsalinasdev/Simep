@@ -1,8 +1,35 @@
 @extends('layouts.guest')
 
-<div class="container-fluid">
+<div class="container-fluid mt-8">
+    <div class="d-flex justify-content-between align-items-center">
 
-    <h4 class="mb-3">Resultados Preliminares - SIMEP</h4>
+        <h4 class="mb-3">Resultados Preliminares - SIMEP</h4>
+
+        <div>
+            <a href="{{ route('consulta') }}" class="btn btn-outline-primary">
+                <i class="fas fa-sync-alt"></i> Actualizar
+            </a>
+        </div>
+
+        <div class="dropdown">
+            <button class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown">
+                {{ Auth::user()->nombre }}
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button class="dropdown-item">
+                            Cerrar sesión
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
 
     <!-- FILTROS -->
 
@@ -16,10 +43,9 @@
 
                     <label class="form-label fw-bold">Tipo Elección</label>
 
-                    <select class="form-select">
-
+                    <select class="form-select" id="tipo_eleccion">
                         <option>Gobernador</option>
-
+                        <option>Alcalde</option>
                     </select>
 
                 </div>
@@ -28,10 +54,9 @@
 
                     <label class="form-label fw-bold">Departamento</label>
 
-                    <select class="form-select">
-
-                        <option>Cochabamba</option>
-
+                    <select class="form-select" id="departamento">
+                        <option>-seleccionar-</option>
+                        <option selected>Cochabamba</option>
                     </select>
 
                 </div>
@@ -40,10 +65,9 @@
 
                     <label class="form-label fw-bold">Provincia</label>
 
-                    <select class="form-select">
-
+                    <select class="form-select" id="provincia">
+                        <option selected>-seleccionar-</option>
                         <option>Cercado</option>
-
                     </select>
 
                 </div>
@@ -52,10 +76,9 @@
 
                     <label class="form-label fw-bold">Municipio</label>
 
-                    <select class="form-select">
-
+                    <select class="form-select" id="municipio">
+                        <option selected>-seleccionar-</option>
                         <option>Cochabamba</option>
-
                     </select>
 
                 </div>
@@ -64,10 +87,9 @@
 
                     <label class="form-label fw-bold">Localidad</label>
 
-                    <select class="form-select">
-
+                    <select class="form-select" id="localidad">
+                        <option selected>-seleccionar-</option>
                         <option>Centro</option>
-
                     </select>
 
                 </div>
@@ -76,10 +98,9 @@
 
                     <label class="form-label fw-bold">Recinto</label>
 
-                    <select class="form-select">
-
+                    <select class="form-select" id="recinto">
+                        <option selected>-seleccionar-</option>
                         <option>Unidad Educativa Bolívar</option>
-
                     </select>
 
                 </div>
@@ -272,6 +293,15 @@
             }
 
         }
+
+    });
+    document.getElementById("tipo_eleccion").addEventListener("change", function() {
+
+        document.getElementById("departamento").selectedIndex = 0;
+        document.getElementById("provincia").selectedIndex = 0;
+        document.getElementById("municipio").selectedIndex = 0;
+        document.getElementById("localidad").selectedIndex = 0;
+        document.getElementById("recinto").selectedIndex = 0;
 
     });
 </script>
