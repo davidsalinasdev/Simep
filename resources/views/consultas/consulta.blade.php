@@ -81,7 +81,7 @@ $votos = $gobernador->pluck('votos')->toArray();
         <h4 class="mb-3">Resultados Preliminares - SIMEP</h4>
 
         <div>
-            <a href="{{ route('consulta') }}" class="btn btn-outline-primary">
+            <a href="{{ route('consulta') }}" class="btn btn-primary">
                 <i class="fas fa-sync-alt"></i> Actualizar
             </a>
         </div>
@@ -199,7 +199,8 @@ $votos = $gobernador->pluck('votos')->toArray();
   </div>
 
     <!-- RESULTADOS -->
-
+	<div class="row">
+	
     <div class="row">
 
         <!-- GRAFICO -->

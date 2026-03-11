@@ -122,7 +122,7 @@ $concejal = DB::table('partido_cargo as pc')
 
             <div class="row mb-4">
 
-                <div class="col-md-3">
+                <div class="col-md-4">
 
                     <label class="fw-bold">Mesa</label>
 
@@ -144,17 +144,22 @@ $concejal = DB::table('partido_cargo as pc')
 
 
 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="fw-bold">Provincia</label>
                     <p>{{ $ubicacion->provincia }}</p>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="fw-bold">Municipio</label>
                     <p>{{ $ubicacion->municipio }}</p>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <label class="fw-bold">Localidad</label>
+                    <p>{{ $ubicacion->localidad }}</p>
+                </div>
+
+                <div class="col-md-2">
                     <label class="fw-bold">Recinto</label>
                     <p>{{ $ubicacion->recinto }}</p>
                 </div>
