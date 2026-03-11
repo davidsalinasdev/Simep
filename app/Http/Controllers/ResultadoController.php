@@ -18,7 +18,7 @@ class ResultadoController extends Controller
 
         $request->validate([
             'id_mesa' => 'required',
-            'imagen_acta' => 'required|image|mimes:jpg,jpeg,png|max:20480'
+            'imagen_acta' => 'nullable|image|mimes:jpg,jpeg,png|max:20480'
         ]);
 
         DB::beginTransaction();
@@ -39,22 +39,27 @@ class ResultadoController extends Controller
 
 
             /* GUARDAR IMAGEN */
-            $imagen = $request->file('imagen_acta');
 
-            $nombre = time() . '.jpg';
+            $rutaImagen = null;
 
-            $ruta = storage_path('app/public/actas/' . $nombre);
+            if ($request->hasFile('imagen_acta')) {
 
-            $manager = new ImageManager(new Driver());
+                $imagen = $request->file('imagen_acta');
 
-            $image = $manager->read($imagen)
-                ->scale(1200)
-                ->toJpeg(70);
+                $nombre = time() . '.jpg';
 
-            $image->save($ruta);
+                $ruta = storage_path('app/public/actas/' . $nombre);
 
-            $rutaImagen = 'actas/' . $nombre;
+                $manager = new ImageManager(new Driver());
 
+                $image = $manager->read($imagen)
+                    ->scale(1200)
+                    ->toJpeg(70);
+
+                $image->save($ruta);
+
+                $rutaImagen = 'actas/' . $nombre;
+            }
 
             /* INSERTAR RESULTADO */
             $id_resultado = DB::table('resultados')->insertGetId([

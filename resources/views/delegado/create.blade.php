@@ -393,8 +393,7 @@ ALCALDE
                     id="imagen_acta"
                     class="form-control"
                     accept="image/*"
-                    capture="environment"
-                    required>
+                    capture="environment">
 
 
                 <hr>
@@ -471,17 +470,17 @@ ALCALDE
 
             const imagen = document.querySelector("input[name='imagen_acta']").value;
 
-            if (imagen == "") {
+            // if (imagen == "") {
 
-                Swal.fire({
-                    icon: "error",
-                    title: "Foto obligatoria",
-                    text: "Debe subir la foto del acta antes de guardar"
-                });
+            //     Swal.fire({
+            //         icon: "error",
+            //         title: "Foto obligatoria",
+            //         text: "Debe subir la foto del acta antes de guardar"
+            //     });
 
-                return;
+            //     return;
 
-            }
+            // }
 
             Swal.fire({
                 title: "¿Guardar resultados?",
