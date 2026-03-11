@@ -1,6 +1,5 @@
 @extends('layouts.app')
 
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 @php
@@ -33,37 +32,51 @@ $mesas = DB::table('mesas')
 ->get();
 
 
+
+/* ============================
+PARTIDOS SEGUN ELECCION
+============================ */
+
 if(Auth::user()->tipo_eleccion == 'Gobernador'){
 
-$partidos = DB::table('partido_cargo as pc')
+$gobernador = DB::table('partido_cargo as pc')
 ->join('partidos as p','pc.id_partido','=','p.id_partido')
 ->join('cargos as c','pc.id_cargo','=','c.id_cargo')
 ->where('c.nombre_cargo','Gobernador')
 ->where('pc.id_departamento',$ubicacion->id_departamento)
-->whereNull('pc.id_municipio') // IMPORTANTE
-->select(
-'pc.id as id_partido_cargo',
-'p.nombre',
-'p.sigla'
-)
+->select('pc.id as id_partido_cargo','p.nombre','p.sigla')
+->get();
+
+
+$asambleista = DB::table('partido_cargo as pc')
+->join('partidos as p','pc.id_partido','=','p.id_partido')
+->join('cargos as c','pc.id_cargo','=','c.id_cargo')
+->where('c.nombre_cargo','Asambleista')
+->where('pc.id_departamento',$ubicacion->id_departamento)
+->select('pc.id as id_partido_cargo','p.nombre','p.sigla')
 ->get();
 
 }else{
 
-$partidos = DB::table('partido_cargo as pc')
+$alcalde = DB::table('partido_cargo as pc')
 ->join('partidos as p','pc.id_partido','=','p.id_partido')
-->join('cargos as c','pc.id_cargo','=','c.id_cargo')
-->where('c.nombre_cargo','Alcalde')
+->where('pc.id_cargo',2)
 ->where('pc.id_municipio',$ubicacion->id_municipio)
-->select(
-'pc.id as id_partido_cargo',
-'p.nombre',
-'p.sigla'
-)
+->select('pc.id as id_partido_cargo','p.nombre','p.sigla')
+->get();
+
+
+$concejal = DB::table('partido_cargo as pc')
+->join('partidos as p','pc.id_partido','=','p.id_partido')
+->where('pc.id_cargo',4)
+->where('pc.id_municipio',$ubicacion->id_municipio)
+->select('pc.id as id_partido_cargo','p.nombre','p.sigla')
 ->get();
 
 }
+
 @endphp
+
 
 
 <div class="card shadow-lg">
@@ -75,11 +88,13 @@ $partidos = DB::table('partido_cargo as pc')
         </h5>
 
         <div class="dropdown">
+
             <button class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown">
                 {{ Auth::user()->nombre }}
             </button>
 
             <ul class="dropdown-menu dropdown-menu-end">
+
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
@@ -88,16 +103,22 @@ $partidos = DB::table('partido_cargo as pc')
                         </button>
                     </form>
                 </li>
+
             </ul>
+
         </div>
 
     </div>
+
+
 
     <div class="card-body">
 
         <form id="formResultados" method="POST" action="{{ route('resultados.store') }}" enctype="multipart/form-data">
 
             @csrf
+            <input type="hidden" name="tipo_eleccion"
+                value="{{ Auth::user()->tipo_eleccion == 'Gobernador' ? 'gobernacion' : 'alcaldia' }}">
 
             <div class="row mb-4">
 
@@ -120,6 +141,7 @@ $partidos = DB::table('partido_cargo as pc')
                     </select>
 
                 </div>
+
 
 
                 <div class="col-md-3">
@@ -153,41 +175,43 @@ $partidos = DB::table('partido_cargo as pc')
 
             <div id="formularioResultados" style="display:none">
 
-                <h5 class="text-primary">Votos por Partido</h5>
+
+
+                {{-- ======================
+GOBERNADOR
+====================== --}}
+
+                @if(Auth::user()->tipo_eleccion == 'Gobernador')
+
+                <h5 class="text-primary">Votos Gobernador</h5>
 
                 <table class="table">
 
                     <thead class="table-dark">
                         <tr>
                             <th>Partido</th>
-                            <th>Votos</th>
+                            <th>Votos Gobernador</th>
                         </tr>
                     </thead>
 
                     <tbody>
 
-                        @foreach($partidos as $partido)
+                        @foreach($gobernador as $partido)
 
                         <tr>
 
                             <td>
-
                                 <strong>{{ $partido->sigla }}</strong>
                                 <br>
                                 <small>{{ $partido->nombre }}</small>
-
                             </td>
 
                             <td>
-
-                                <input
-                                    type="number"
+                                <input type="number"
                                     name="votos[{{ $partido->id_partido_cargo }}]"
-                                    class="form-control votos"
+                                    class="form-control votos sumar"
                                     value="0"
-                                    min="0"
-                                    required>
-
+                                    min="0">
                             </td>
 
                         </tr>
@@ -200,18 +224,151 @@ $partidos = DB::table('partido_cargo as pc')
 
 
 
+                <h5 class="text-primary">Votos Asambleísta</h5>
+
+                <table class="table">
+
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Partido</th>
+                            <th>Votos Asambleísta</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach($asambleista as $partido)
+
+                        <tr>
+
+                            <td>
+                                <strong>{{ $partido->sigla }}</strong>
+                                <br>
+                                <small>{{ $partido->nombre }}</small>
+                            </td>
+
+                            <td>
+                                <input type="number"
+                                    name="votos[{{ $partido->id_partido_cargo }}]"
+                                    class="form-control votos"
+                                    value="0"
+                                    min="0">
+                            </td>
+
+                        </tr>
+
+                        @endforeach
+
+                    </tbody>
+
+                </table>
+
+                @endif
+
+
+
+                {{-- ======================
+ALCALDE
+====================== --}}
+
+                @if(Auth::user()->tipo_eleccion == 'Alcalde')
+
+                <h5 class="text-primary">Votos Alcalde</h5>
+
+                <table class="table">
+
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Partido</th>
+                            <th>Votos Alcalde</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach($alcalde as $partido)
+
+                        <tr>
+
+                            <td>
+                                <strong>{{ $partido->sigla }}</strong>
+                                <br>
+                                <small>{{ $partido->nombre }}</small>
+                            </td>
+
+                            <td>
+                                <input type="number"
+                                    name="votos[{{ $partido->id_partido_cargo }}]"
+                                    class="form-control votos sumar"
+                                    value="0"
+                                    min="0">
+                            </td>
+
+                        </tr>
+
+                        @endforeach
+
+                    </tbody>
+
+                </table>
+
+
+
+                <h5 class="text-primary">Votos Concejal</h5>
+
+                <table class="table">
+
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Partido</th>
+                            <th>Votos Concejal</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach($concejal as $partido)
+
+                        <tr>
+
+                            <td>
+                                <strong>{{ $partido->sigla }}</strong>
+                                <br>
+                                <small>{{ $partido->nombre }}</small>
+                            </td>
+
+                            <td>
+                                <input type="number"
+                                    name="votos[{{ $partido->id_partido_cargo }}]"
+                                    class="form-control votos"
+                                    value="0"
+                                    min="0">
+                            </td>
+
+                        </tr>
+
+                        @endforeach
+
+                    </tbody>
+
+                </table>
+
+                @endif
+
+
+
                 <h5 class="text-primary">Votos Especiales</h5>
 
                 <div class="row">
 
                     <div class="col-md-4">
                         <label>Blancos</label>
-                        <input type="number" name="blancos" class="form-control votos" value="0">
+                        <input type="number" name="blancos" class="form-control votos sumar" value="0">
                     </div>
 
                     <div class="col-md-4">
                         <label>Nulos</label>
-                        <input type="number" name="nulos" class="form-control votos" value="0">
+                        <input type="number" name="nulos" class="form-control votos sumar" value="0">
                     </div>
 
                     <div class="col-md-4">
@@ -230,7 +387,6 @@ $partidos = DB::table('partido_cargo as pc')
 
                 <label>Foto del Acta</label>
 
-
                 <input
                     type="file"
                     name="imagen_acta"
@@ -247,6 +403,7 @@ $partidos = DB::table('partido_cargo as pc')
                     Guardar Resultados
                 </button>
 
+
             </div>
 
         </form>
@@ -255,25 +412,14 @@ $partidos = DB::table('partido_cargo as pc')
 
 </div>
 
-@if ($errors->any())
-
-<script>
-    Swal.fire({
-        icon: 'error',
-        title: 'Error al guardar',
-        html: `{!! implode('<br>', $errors->all()) !!}`
-    });
-</script>
-
-@endif
-
 @if(session('success'))
 
 <script>
     Swal.fire({
         icon: 'success',
-        title: 'Registro exitoso',
-        text: '{{ session("success") }}'
+        title: 'Correcto',
+        text: 'success ',
+        confirmButtonColor: '#28a745'
     });
 </script>
 
@@ -286,11 +432,13 @@ $partidos = DB::table('partido_cargo as pc')
     Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: '{{ session("error") }}'
+        text: 'error'
     });
 </script>
 
 @endif
+
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
 
@@ -370,7 +518,7 @@ $partidos = DB::table('partido_cargo as pc')
 
             let total = 0;
 
-            document.querySelectorAll(".votos").forEach(function(input) {
+            document.querySelectorAll(".sumar").forEach(function(input) {
 
                 total += parseInt(input.value) || 0;
 
@@ -380,8 +528,7 @@ $partidos = DB::table('partido_cargo as pc')
 
         }
 
-
-        document.querySelectorAll(".votos").forEach(function(input) {
+        document.querySelectorAll(".sumar").forEach(function(input) {
 
             input.addEventListener("input", calcularTotal);
 

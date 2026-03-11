@@ -39,7 +39,6 @@ class ResultadoController extends Controller
 
 
             /* GUARDAR IMAGEN */
-
             $imagen = $request->file('imagen_acta');
 
             $nombre = time() . '.jpg';
@@ -95,6 +94,7 @@ class ResultadoController extends Controller
                 'blancos' => $request->blancos,
                 'nulos' => $request->nulos,
                 'total_papeletas' => $request->total_papeletas,
+                'tipo_eleccion' => $request->tipo_eleccion,
                 'created_at' => now(),
                 'updated_at' => now()
 
