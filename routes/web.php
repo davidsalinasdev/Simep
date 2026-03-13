@@ -253,8 +253,18 @@ Route::get('/resultados-filtrados', function () {
         ->orderByDesc('votos')
         ->get();
 
+    /* RESULTADO TERCERO */
 
-    /* DETALLE */
+    $tercero = (clone $base)
+        ->where('c.nombre_cargo', 'Asambleista Poblacion')
+        ->select(
+            'p.sigla',
+            DB::raw('SUM(vp.votos) as votos')
+        )
+        ->groupBy('p.sigla')
+        ->havingRaw('SUM(vp.votos) > 0')
+        ->orderByDesc('votos')
+        ->get();
 
     /* DETALLE */
 
@@ -303,6 +313,7 @@ Route::get('/resultados-filtrados', function () {
 
         'gobernador' => $principal,
         'asambleista' => $secundario,
+        'asambleista_poblacion' => $tercero,
         'detalle' => $detalle
 
     ];

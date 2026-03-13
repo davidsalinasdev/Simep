@@ -40,6 +40,25 @@ $labelsAsam = $asambleista->pluck('sigla')->toArray();
 $votosAsam = $asambleista->pluck('votos')->toArray();
 
 
+$asambleista_poblacion = DB::table('votos_partido as vp')
+->join('partido_cargo as pc','vp.id_partido_cargo','=','pc.id')
+->join('partidos as p','pc.id_partido','=','p.id_partido')
+->join('cargos as c','pc.id_cargo','=','c.id_cargo')
+->where('c.nombre_cargo','Asambleista Poblacion')
+->select(
+'p.sigla',
+DB::raw('SUM(vp.votos) as votos')
+)
+->groupBy('p.sigla')
+->havingRaw('SUM(vp.votos) > 0')
+->orderByDesc('votos')
+->get();
+
+
+$labelsAsamPob = $asambleista_poblacion->pluck('sigla')->toArray();
+$votosAsamPob = $asambleista_poblacion->pluck('votos')->toArray();
+
+
 /* DETALLE */
 
 $detalle = DB::table('votos_especiales as ve')
@@ -205,7 +224,7 @@ $votos = $gobernador->pluck('votos')->toArray();
 
         <!-- GRAFICO -->
 
-        <div class="col-lg-5">
+        <div class="col-lg-4">
             <div class="card shadow">
                 <div class="card-header fw-bold">
                     Resultados Gráficos Gobernador
@@ -219,23 +238,36 @@ $votos = $gobernador->pluck('votos')->toArray();
         </div>
 		
 		<div class="col-lg-4">
-    <div class="card shadow">
-        <div class="card-header fw-bold">
-            Resultados Gráficos Asambleísta
-        </div>
+			<div class="card shadow">
+				<div class="card-header fw-bold">
+					Resultados Gráficos Asambleísta
+				</div>
 
-        <div class="card-body">
-            <canvas id="graficoAsambleista"></canvas>
-        </div>
+				<div class="card-body">
+					<canvas id="graficoAsambleista"></canvas>
+				</div>
 
-    </div>
-</div>
+			</div>
+		</div>
+		
+		<div class="col-lg-4" id="panelAsamPoblacion">
+			<div class="card shadow">
+				<div class="card-header fw-bold">
+					Resultados Asambleísta Población
+				</div>
+
+				<div class="card-body">
+					<canvas id="graficoAsamPoblacion"></canvas>
+				</div>
+
+			</div>
+		</div>
         
 
 
         <!-- PANEL DETALLE -->
 
-        <div class="col-lg-3">
+        <div class="col-lg-4">
 
             <div class="card shadow">
 
@@ -380,7 +412,11 @@ const graficoGob = new Chart(ctx, {
 const labelsAsam = {!! json_encode($labelsAsam) !!};
 const votosAsam = {!! json_encode($votosAsam) !!};
 
+const labelsAsamPob = {!! json_encode($labelsAsamPob) !!};
+const votosAsamPob = {!! json_encode($votosAsamPob) !!};
+
 const totalAsam = votosAsam.reduce((a,b)=>a+b,0);
+const totalAsamPobl = votosAsamPob.reduce((a,b)=>a+b,0);
 
 const ctx2 = document.getElementById('graficoAsambleista');
 
@@ -431,6 +467,68 @@ const graficoAsam = new Chart(ctx2, {
                 formatter: function(value){
 
                     let porcentaje = ((value / totalAsam) * 100).toFixed(1);
+
+                    return value + " votos (" + porcentaje + "%)";
+                }
+            }
+
+        }
+
+    },
+
+    plugins: [ChartDataLabels]
+
+});
+
+const ctx3 = document.getElementById('graficoAsamPoblacion');
+
+const graficoAsamPob = new Chart(ctx3, {
+
+    type: 'bar',
+
+    data: {
+        labels: labelsAsamPob,
+        datasets: [{
+            data: votosAsamPob,
+            backgroundColor: [
+                '#0056b3',
+                '#ff5733',
+                '#2ecc71',
+                '#f1c40f'
+            ]
+        }]
+    },
+
+    options: {
+
+        indexAxis: 'y',
+
+        scales: {
+            x: {
+                beginAtZero: true
+            }
+        },
+
+        plugins: {
+
+            legend: {
+                display: false
+            },
+
+            datalabels: {
+
+                anchor: 'center',
+                align: 'center',
+
+                color: '#000',
+
+                font: {
+                    size: 12
+                },
+
+                formatter: function(value){
+
+                    let porcentaje = ((value / totalAsamPobl) * 100).toFixed(1);
 
                     return value + " votos (" + porcentaje + "%)";
                 }
@@ -569,10 +667,14 @@ if(tipo_eleccion == 'alcaldia'){
 $('.card-header').eq(0).text('Resultados Gráficos Alcalde');
 $('.card-header').eq(1).text('Resultados Gráficos Concejal');
 
+$('#panelAsamPoblacion').hide(); // ocultar tercer gráfico
+
 }else{
 
 $('.card-header').eq(0).text('Resultados Gráficos Gobernador');
 $('.card-header').eq(1).text('Resultados Gráficos Asambleísta');
+
+$('#panelAsamPoblacion').show(); // mostrar tercer gráfico
 
 }
 	
@@ -598,12 +700,16 @@ recinto:recinto
 
 let datosGob = data.gobernador.sort((a,b)=> b.votos - a.votos);
 let datosAsam = data.asambleista.sort((a,b)=> b.votos - a.votos);
+let datosAsamPob = data.asambleista_poblacion.sort((a,b)=> b.votos - a.votos);
 
 let labelsGob=[];
 let votosGob=[];
 
 let labelsAsam=[];
 let votosAsam=[];
+
+let labelsAsamPob=[];
+let votosAsamPob=[];
 
 
 /* GOBERNADOR */
@@ -635,6 +741,20 @@ labelsAsam = ['Sin votos'];
 votosAsam = [0];
 }
 
+/* ASAMBLEISTA POBLACION */
+
+datosAsamPob.forEach(function(item){
+
+labelsAsamPob.push(item.sigla);
+votosAsamPob.push(parseInt(item.votos));
+
+});
+
+if(labelsAsamPob.length == 0){
+labelsAsamPob = ['Sin votos'];
+votosAsamPob = [0];
+}
+
 
 /* ACTUALIZAR GRAFICO GOBERNADOR */
 
@@ -648,6 +768,12 @@ graficoGob.update();
 graficoAsam.data.labels = labelsAsam;
 graficoAsam.data.datasets[0].data = votosAsam;
 graficoAsam.update();
+
+/* ACTUALIZAR ASAMBLEISTA POBLACION */
+
+graficoAsamPob.data.labels = labelsAsamPob;
+graficoAsamPob.data.datasets[0].data = votosAsamPob;
+graficoAsamPob.update();
 
 
 /* ACTUALIZAR DETALLE */

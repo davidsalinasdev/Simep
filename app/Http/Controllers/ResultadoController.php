@@ -32,9 +32,18 @@ class ResultadoController extends Controller
 
 
             // dd($request->id_mesa);
-            if (!$mesa || $mesa->estado != 'pendiente') {
-                return redirect()->back()
-                    ->with('error', 'Esta mesa ya fue registrada o no existe');
+            if ($request->tipo_eleccion == 'gobernacion') {
+
+                if (!$mesa || $mesa->estado_gobernacion != 'pendiente') {
+                    return redirect()->back()
+                        ->with('error', 'Esta mesa ya fue registrada para Gobernador');
+                }
+            } else {
+
+                if (!$mesa || $mesa->estado_alcaldia != 'pendiente') {
+                    return redirect()->back()
+                        ->with('error', 'Esta mesa ya fue registrada para Alcalde');
+                }
             }
 
 
@@ -108,14 +117,23 @@ class ResultadoController extends Controller
 
             /* ACTUALIZAR MESA */
 
-            DB::table('mesas')
-                ->where('id_mesa', $request->id_mesa)
-                ->update([
+            if ($request->tipo_eleccion == 'gobernacion') {
 
-                    'estado' => 'enviado',
-                    'updated_at' => now()
+                DB::table('mesas')
+                    ->where('id_mesa', $request->id_mesa)
+                    ->update([
+                        'estado_gobernacion' => 'enviado',
+                        'updated_at' => now()
+                    ]);
+            } else {
 
-                ]);
+                DB::table('mesas')
+                    ->where('id_mesa', $request->id_mesa)
+                    ->update([
+                        'estado_alcaldia' => 'enviado',
+                        'updated_at' => now()
+                    ]);
+            }
 
 
             DB::commit();

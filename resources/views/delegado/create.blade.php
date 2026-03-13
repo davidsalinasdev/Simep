@@ -25,11 +25,23 @@ $ubicacion = DB::table('recintos as r')
 ->first();
 
 
+if(Auth::user()->tipo_eleccion == 'Gobernador'){
+
 $mesas = DB::table('mesas')
 ->where('id_recinto',$id_recinto)
-->where('estado','pendiente')
+->where('estado_gobernacion','pendiente')
 ->orderBy('numero_mesa')
 ->get();
+
+}else{
+
+$mesas = DB::table('mesas')
+->where('id_recinto',$id_recinto)
+->where('estado_alcaldia','pendiente')
+->orderBy('numero_mesa')
+->get();
+
+}
 
 
 
@@ -52,6 +64,14 @@ $asambleista = DB::table('partido_cargo as pc')
 ->join('partidos as p','pc.id_partido','=','p.id_partido')
 ->join('cargos as c','pc.id_cargo','=','c.id_cargo')
 ->where('c.nombre_cargo','Asambleista')
+->where('pc.id_departamento',$ubicacion->id_departamento)
+->select('pc.id as id_partido_cargo','p.nombre','p.sigla')
+->get();
+
+$asambleista_poblacion = DB::table('partido_cargo as pc')
+->join('partidos as p','pc.id_partido','=','p.id_partido')
+->join('cargos as c','pc.id_cargo','=','c.id_cargo')
+->where('c.nombre_cargo','Asambleista Poblacion')
 ->where('pc.id_departamento',$ubicacion->id_departamento)
 ->select('pc.id as id_partido_cargo','p.nombre','p.sigla')
 ->get();
@@ -267,6 +287,46 @@ GOBERNADOR
                     </tbody>
 
                 </table>
+
+                <h5 class="text-primary">Votos Asambleísta por Población</h5>
+
+                <table class="table">
+
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Partido</th>
+                            <th>Votos Asambleísta Población</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach($asambleista_poblacion as $partido)
+
+                        <tr>
+
+                            <td>
+                                <strong>{{ $partido->sigla }}</strong>
+                                <br>
+                                <small>{{ $partido->nombre }}</small>
+                            </td>
+
+                            <td>
+                                <input type="number"
+                                    name="votos[{{ $partido->id_partido_cargo }}]"
+                                    class="form-control votos"
+                                    value="0"
+                                    min="0">
+                            </td>
+
+                        </tr>
+
+                        @endforeach
+
+                    </tbody>
+
+                </table>
+
 
                 @endif
 
