@@ -24,9 +24,9 @@
                         @csrf
 
                         <div class="mb-3">
-                            <label class="form-label">Email</label>
+                            <label class="form-label">Usuario</label>
                             <input
-                                type="email"
+                                type="text"
                                 name="email"
                                 class="form-control"
                                 value="{{ old('email') }}"
