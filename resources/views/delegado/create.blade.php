@@ -110,7 +110,7 @@ $concejal = DB::table('partido_cargo as pc')
         <div class="dropdown">
 
             <button class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown">
-                {{ Auth::user()->nombre }}
+                {{ Auth::user()->email }}
             </button>
 
             <ul class="dropdown-menu dropdown-menu-end">
