@@ -411,27 +411,27 @@ const graficoGob = new Chart(ctx, {
                 display: false
             },
 
-            datalabels: {
+           datalabels: {
 
-                anchor: 'center',
-                align: 'center',
+    anchor: 'end',     // 🔥 se pega al final de la barra
+    align: 'right',    // 🔥 lo saca hacia afuera
 
-                color: '#fff',
+    color: '#000',     // negro para que se vea afuera
 
-                font: {
-                    weight: 'normal',
-                    size: 12
-                },
+    offset: 10,        // 🔥 separa un poco del borde
 
-                formatter: function(value){
+    font: {
+        size: 12,
+        weight: 'bold'
+    },
 
-                    let porcentaje = ((value / totalVotos) * 100).toFixed(1);
+    formatter: function(value){
 
-                    let texto = value + (value == 1 ? " voto" : " votos");
+        let porcentaje = ((value / totalVotos) * 100).toFixed(1);
 
-                    return texto + " (" + porcentaje + "%)";
-                }
-            }
+        return value + " votos (" + porcentaje + "%)";
+    }
+}
 
         }
 
