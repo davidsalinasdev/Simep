@@ -268,7 +268,21 @@ Route::get('/resultados-filtrados', function () {
 
     /* DETALLE */
 
-    $detalle = DB::table('votos_especiales as ve')
+
+
+    function obtenerDetalle($baseDetalle, $cargoNombre)
+    {
+        return (clone $baseDetalle)
+            ->join('cargos as c', 've.id_cargo', '=', 'c.id_cargo')
+            ->where('c.nombre_cargo', $cargoNombre)
+            ->select(
+                DB::raw('SUM(ve.blancos) as blancos'),
+                DB::raw('SUM(ve.nulos) as nulos')
+            )
+            ->first();
+    }
+
+    $baseDetalle = DB::table('votos_especiales as ve')
         ->join('resultados as r', 've.id_resultado', '=', 'r.id_resultado')
         ->join('mesas as m', 'r.id_mesa', '=', 'm.id_mesa')
         ->join('recintos as re', 'm.id_recinto', '=', 're.id_recinto')
@@ -278,43 +292,37 @@ Route::get('/resultados-filtrados', function () {
         ->join('departamentos as d', 'pr.id_departamento', '=', 'd.id_departamento')
         ->where('ve.tipo_eleccion', $tipo);
 
+    /* FILTROS */
+    if ($departamento) $baseDetalle->where('d.id_departamento', $departamento);
+    if ($provincia) $baseDetalle->where('pr.id_provincia', $provincia);
+    if ($municipio) $baseDetalle->where('mu.id_municipio', $municipio);
+    if ($localidad) $baseDetalle->where('lo.id_localidad', $localidad);
+    if ($recinto) $baseDetalle->where('re.id_recinto', $recinto);
 
-    if ($departamento) {
-        $detalle->where('d.id_departamento', $departamento);
-    }
-
-    if ($provincia) {
-        $detalle->where('pr.id_provincia', $provincia);
-    }
-
-    if ($municipio) {
-        $detalle->where('mu.id_municipio', $municipio);
-    }
-
-    if ($localidad) {
-        $detalle->where('lo.id_localidad', $localidad);
-    }
-
-    if ($recinto) {
-        $detalle->where('re.id_recinto', $recinto);
-    }
+    /* DETALLES */
+    $detalleGob = obtenerDetalle($baseDetalle, 'Gobernador');
+    $detalleAsam = obtenerDetalle($baseDetalle, 'Asambleista');
+    $detalleAsamPob = obtenerDetalle($baseDetalle, 'Asambleista Poblacion');
+    $detalleAlcalde = obtenerDetalle($baseDetalle, 'Alcalde');
+    $detalleConcejal = obtenerDetalle($baseDetalle, 'Concejal');
 
 
-    $detalle = $detalle->select(
 
-        DB::raw('SUM(ve.blancos) as blancos'),
-        DB::raw('SUM(ve.nulos) as nulos'),
-        DB::raw('SUM(ve.total_papeletas) as emitidos')
-
-    )->first();
 
 
     return [
 
+        // 🔥 ESTO FALTABA
         'gobernador' => $principal,
         'asambleista' => $secundario,
         'asambleista_poblacion' => $tercero,
-        'detalle' => $detalle
+
+        // 🔥 TUS NUEVOS DETALLES
+        'detalle_gob' => $detalleGob,
+        'detalle_asam' => $detalleAsam,
+        'detalle_asam_pob' => $detalleAsamPob,
+        'detalle_alcalde' => $detalleAlcalde,
+        'detalle_concejal' => $detalleConcejal
 
     ];
 });

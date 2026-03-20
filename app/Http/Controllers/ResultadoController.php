@@ -10,69 +10,82 @@ use Intervention\Image\Drivers\Gd\Driver;
 
 class ResultadoController extends Controller
 {
-
     public function store(Request $request)
     {
-
-
-
         $request->validate([
-            'id_mesa' => 'required',
-            'imagen_acta' => 'nullable|image|mimes:jpg,jpeg,png|max:20480'
+            'id_mesa' => 'required|exists:mesas,id_mesa',
+            'imagen_acta' => 'nullable|image|mimes:jpg,jpeg,png|max:20480',
+            'votos' => 'required|array'
         ]);
 
         DB::beginTransaction();
 
         try {
-            /* VALIDAR MESA */
+
+            /* =========================
+        VALIDAR MESA
+        ========================= */
             $mesa = DB::table('mesas')
                 ->where('id_mesa', $request->id_mesa)
+                ->lockForUpdate()
                 ->first();
 
+            if (!$mesa) {
+                throw new \Exception("Mesa no encontrada");
+            }
 
-
-            // dd($request->id_mesa);
             if ($request->tipo_eleccion == 'gobernacion') {
 
-                if (!$mesa || $mesa->estado_gobernacion != 'pendiente') {
-                    return redirect()->back()
-                        ->with('error', 'Esta mesa ya fue registrada para Gobernador');
+                if ($mesa->estado_gobernacion != 'pendiente') {
+                    throw new \Exception("Esta mesa ya fue registrada para Gobernador");
                 }
             } else {
 
-                if (!$mesa || $mesa->estado_alcaldia != 'pendiente') {
-                    return redirect()->back()
-                        ->with('error', 'Esta mesa ya fue registrada para Alcalde');
+                if ($mesa->estado_alcaldia != 'pendiente') {
+                    throw new \Exception("Esta mesa ya fue registrada para Alcalde");
                 }
             }
 
 
-            /* GUARDAR IMAGEN */
-
+            /* =========================
+        GUARDAR IMAGEN
+        ========================= */
             $rutaImagen = null;
 
             if ($request->hasFile('imagen_acta')) {
 
                 $imagen = $request->file('imagen_acta');
-
                 $nombre = time() . '.jpg';
-
                 $ruta = storage_path('app/public/actas/' . $nombre);
 
                 $manager = new ImageManager(new Driver());
 
-                $image = $manager->read($imagen)
+                $manager->read($imagen)
                     ->scale(1200)
-                    ->toJpeg(70);
-
-                $image->save($ruta);
+                    ->toJpeg(70)
+                    ->save($ruta);
 
                 $rutaImagen = 'actas/' . $nombre;
             }
 
-            /* INSERTAR RESULTADO */
-            $id_resultado = DB::table('resultados')->insertGetId([
+            /* =========================
+VALIDAR CONSISTENCIA
+========================= */
+            $total_votos = array_sum($request->votos);
 
+            $total_especiales = 0;
+
+            if ($request->has('especial')) {
+                foreach ($request->especial as $datos) {
+                    $total_especiales += intval($datos['blancos'] ?? 0);
+                    $total_especiales += intval($datos['nulos'] ?? 0);
+                }
+            }
+
+            /* =========================
+        INSERTAR RESULTADO
+        ========================= */
+            $id_resultado = DB::table('resultados')->insertGetId([
                 'id_mesa' => $request->id_mesa,
                 'id_usuario' => Auth::id(),
                 'fecha_envio' => now(),
@@ -80,43 +93,63 @@ class ResultadoController extends Controller
                 'estado_validacion' => 'pendiente',
                 'created_at' => now(),
                 'updated_at' => now()
-
-            ], 'id_resultado'); // 👈 AQUI
-
-
-            /* GUARDAR VOTOS PARTIDOS */
-
+            ], 'id_resultado');
+            /* =========================
+        GUARDAR VOTOS PARTIDOS
+        ========================= */
             foreach ($request->votos as $id_partido_cargo => $votos) {
 
-                DB::table('votos_partido')->insert([
+                if ($votos < 0) {
+                    throw new \Exception("No se permiten votos negativos");
+                }
 
+                DB::table('votos_partido')->insert([
                     'id_resultado' => $id_resultado,
                     'id_partido_cargo' => $id_partido_cargo,
-                    'votos' => $votos,
+                    'votos' => intval($votos),
                     'created_at' => now(),
                     'updated_at' => now()
-
                 ]);
             }
 
+            /* =========================
+        GUARDAR VOTOS ESPECIALES (PRO)
+        ========================= */
+            if ($request->has('especial')) {
 
-            /* GUARDAR VOTOS ESPECIALES */
+                foreach ($request->especial as $cargo => $datos) {
 
-            DB::table('votos_especiales')->insert([
+                    $nombreCargo = ucwords(str_replace('_', ' ', $cargo));
 
-                'id_resultado' => $id_resultado,
-                'blancos' => $request->blancos,
-                'nulos' => $request->nulos,
-                'total_papeletas' => $request->total_papeletas,
-                'tipo_eleccion' => $request->tipo_eleccion,
-                'created_at' => now(),
-                'updated_at' => now()
+                    $id_cargo = DB::table('cargos')
+                        ->where('nombre_cargo', $nombreCargo)
+                        ->value('id_cargo');
 
-            ]);
+                    if (!$id_cargo) {
+                        throw new \Exception("Cargo no encontrado: " . $nombreCargo);
+                    }
 
+                    // 🚫 Validar negativos
+                    if (($datos['blancos'] ?? 0) < 0 || ($datos['nulos'] ?? 0) < 0) {
+                        throw new \Exception("Valores negativos no permitidos");
+                    }
 
-            /* ACTUALIZAR MESA */
+                    DB::table('votos_especiales')->insert([
+                        'id_resultado' => $id_resultado,
+                        'id_cargo' => $id_cargo,
+                        'blancos' => intval($datos['blancos'] ?? 0),
+                        'nulos' => intval($datos['nulos'] ?? 0),
+                        // 'total_papeletas' => intval($request->total_papeletas),
+                        'tipo_eleccion' => $request->tipo_eleccion,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+            }
 
+            /* =========================
+        ACTUALIZAR MESA
+        ========================= */
             if ($request->tipo_eleccion == 'gobernacion') {
 
                 DB::table('mesas')
@@ -143,10 +176,9 @@ class ResultadoController extends Controller
         } catch (\Exception $e) {
 
             DB::rollBack();
-
-            // return redirect()->back()
-            //     ->with('error', 'Error al guardar resultados');
-            dd($e);
+            dd($e->getMessage());
+            return redirect()->back()
+                ->with('error', $e->getMessage());
         }
     }
 }

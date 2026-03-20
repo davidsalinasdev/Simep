@@ -60,7 +60,6 @@ $votosAsamPob = $asambleista_poblacion->pluck('votos')->toArray();
 
 
 /* DETALLE */
-
 $detalle = DB::table('votos_especiales as ve')
 ->join('resultados as r','ve.id_resultado','=','r.id_resultado')
 ->join('mesas as m','r.id_mesa','=','m.id_mesa')
@@ -71,19 +70,21 @@ $detalle = DB::table('votos_especiales as ve')
 ->join('departamentos as d','pr.id_departamento','=','d.id_departamento')
 ->where('ve.tipo_eleccion','gobernacion')
 ->select(
-
-DB::raw('SUM(ve.blancos) as blancos'),
-DB::raw('SUM(ve.nulos) as nulos'),
-DB::raw('SUM(ve.total_papeletas) as emitidos')
-
+    DB::raw('SUM(ve.blancos) as blancos'),
+    DB::raw('SUM(ve.nulos) as nulos'),
+    DB::raw('SUM(DISTINCT r.total_papeletas) as emitidos') // ✅ CORRECTO
 )->first();
 
 
 $votosValidos = $gobernador->sum('votos');
 
-$porcValidos = $detalle->emitidos > 0 ? ($votosValidos/$detalle->emitidos)*100 : 0;
-$porcBlancos = $detalle->emitidos > 0 ? ($detalle->blancos/$detalle->emitidos)*100 : 0;
-$porcNulos = $detalle->emitidos > 0 ? ($detalle->nulos/$detalle->emitidos)*100 : 0;
+// 🔥 calcular emitidos correctamente
+$emitidos = $votosValidos + $detalle->blancos + $detalle->nulos;
+
+// 🔥 porcentajes correctos
+$porcValidos = $emitidos > 0 ? ($votosValidos/$emitidos)*100 : 0;
+$porcBlancos = $emitidos > 0 ? ($detalle->blancos/$emitidos)*100 : 0;
+$porcNulos = $emitidos > 0 ? ($detalle->nulos/$emitidos)*100 : 0;
 
 
 /* DATOS PARA GRAFICO */
@@ -93,6 +94,14 @@ $votos = $gobernador->pluck('votos')->toArray();
 
 @endphp
 
+<style>
+td {
+    vertical-align: middle;
+}
+td:nth-child(2), td:nth-child(3){
+    text-align: right;
+}
+</style>
 
 <div class="container-fluid mt-8">
     <div class="d-flex justify-content-between align-items-center">
@@ -232,6 +241,33 @@ $votos = $gobernador->pluck('votos')->toArray();
 
                 <div class="card-body">
                     <canvas id="graficoResultados"></canvas>
+					<div class="card mt-2">
+					<div class="card-header bg-danger text-white">Detalle Gobernador</div>
+					<div class="card-body">
+						<table class="table table-sm mb-0">
+							<tr>
+								<td>Válidos</td>
+								<td id="g_validos"></td>
+								<td id="g_validos_p"></td>
+							</tr>
+							<tr>
+								<td>Blancos</td>
+								<td id="g_blancos"></td>
+								<td id="g_blancos_p"></td>
+							</tr>
+							<tr>
+								<td>Nulos</td>
+								<td id="g_nulos"></td>
+								<td id="g_nulos_p"></td>
+							</tr>
+							<tr>
+								<td><b>Emitidos</b></td>
+								<td id="g_emitidos"></td>
+							</tr>
+						</table>
+					</div>
+				</div>
+					
                 </div>
 
             </div>
@@ -245,6 +281,32 @@ $votos = $gobernador->pluck('votos')->toArray();
 
 				<div class="card-body">
 					<canvas id="graficoAsambleista"></canvas>
+					<div class="card mt-2">
+					<div class="card-header bg-primary text-white">Detalle Asambleísta</div>
+					<div class="card-body">
+						<table class="table table-sm mb-0">
+							<tr>
+								<td>Válidos</td>
+								<td id="a_validos"></td>
+								<td id="a_validos_p"></td>
+							</tr>
+							<tr>
+								<td>Blancos</td>
+								<td id="a_blancos"></td>
+								<td id="a_blancos_p"></td>
+							</tr>
+							<tr>
+								<td>Nulos</td>
+								<td id="a_nulos"></td>
+								<td id="a_nulos_p"></td>
+							</tr>
+							<tr>
+								<td><b>Emitidos</b></td>
+								<td id="a_emitidos"></td>
+							</tr>
+						</table>
+					</div>
+				</div>
 				</div>
 
 			</div>
@@ -258,75 +320,37 @@ $votos = $gobernador->pluck('votos')->toArray();
 
 				<div class="card-body">
 					<canvas id="graficoAsamPoblacion"></canvas>
+					<div class="card mt-2">
+					<div class="card-header bg-warning text-white">Detalle Asambleísta Población</div>
+					<div class="card-body">
+						<table class="table table-sm mb-0">
+							<tr>
+								<td>Válidos</td>
+								<td id="ap_validos"></td>
+								<td id="ap_validos_p"></td>
+							</tr>
+							<tr>
+								<td>Blancos</td>
+								<td id="ap_blancos"></td>
+								<td id="ap_blancos_p"></td>
+							</tr>
+							<tr>
+								<td>Nulos</td>
+								<td id="ap_nulos"></td>
+								<td id="ap_nulos_p"></td>
+							</tr>
+							<tr>
+								<td><b>Emitidos</b></td>
+								<td id="ap_emitidos"></td>
+							</tr>
+						</table>
+					</div>
+</div>
 				</div>
 
 			</div>
 		</div>
-        
-
-
-        <!-- PANEL DETALLE -->
-
-        <div class="col-lg-4">
-
-            <div class="card shadow">
-
-                <div class="card-header bg-danger text-white fw-bold">
-                    Detalle
-                </div>
-
-                <div class="card-body p-0">
-
-                    <table class="table mb-0">
-
-                        <thead class="table-danger">
-                            <tr>
-                                <th>Detalle</th>
-                                <th>Total</th>
-                                <th>%</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-
-                            <tr>
-								<td>Votos Válidos</td>
-								<td id="det_validos">{{ number_format($votosValidos) }}</td>
-								<td id="det_validos_p">{{ number_format($porcValidos,1) }}%</td>
-								</tr>
-
-								<tr>
-								<td>Votos Blancos</td>
-								<td id="det_blancos">{{ number_format($detalle->blancos) }}</td>
-								<td id="det_blancos_p">{{ number_format($porcBlancos,1) }}%</td>
-								</tr>
-
-								<tr>
-								<td>Votos Nulos</td>
-								<td id="det_nulos">{{ number_format($detalle->nulos) }}</td>
-								<td id="det_nulos_p">{{ number_format($porcNulos,1) }}%</td>
-								</tr>
-
-								<tr>
-								<td>Votos Emitidos</td>
-								<td id="det_emitidos">{{ number_format($detalle->emitidos) }}</td>
-								<td>-</td>
-							</tr>
-
-                        </tbody>
-
-                    </table>
-
-                    <div class="p-3 text-muted small">
-                        Fecha del servidor:<br>
-                        {{ now() }}
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
+       
 
     </div>
 </div>
@@ -778,29 +802,40 @@ graficoAsamPob.update();
 
 /* ACTUALIZAR DETALLE */
 
-let blancos = parseInt(data.detalle.blancos ?? 0);
-let nulos = parseInt(data.detalle.nulos ?? 0);
-let emitidos = parseInt(data.detalle.emitidos ?? 0);
+function pintarDetalle(det, votosArray, pref){
 
-let validos = votosGob.reduce((a,b)=>a+b,0);
+    let blancos = parseInt(det?.blancos ?? 0);
+    let nulos = parseInt(det?.nulos ?? 0);
 
-let p_validos = emitidos>0 ? ((validos/emitidos)*100).toFixed(1) : 0;
-let p_blancos = emitidos>0 ? ((blancos/emitidos)*100).toFixed(1) : 0;
-let p_nulos = emitidos>0 ? ((nulos/emitidos)*100).toFixed(1) : 0;
+    let validos = votosArray.reduce((a,b)=>a+b,0);
+    let emitidos = validos + blancos + nulos;
+
+    let pValidos = emitidos > 0 ? ((validos/emitidos)*100).toFixed(1) : 0;
+    let pBlancos = emitidos > 0 ? ((blancos/emitidos)*100).toFixed(1) : 0;
+    let pNulos = emitidos > 0 ? ((nulos/emitidos)*100).toFixed(1) : 0;
+
+    // 🔥 valores
+    $('#'+pref+'_validos').text(validos);
+    $('#'+pref+'_blancos').text(blancos);
+    $('#'+pref+'_nulos').text(nulos);
+    $('#'+pref+'_emitidos').text(emitidos);
+
+    // 🔥 porcentajes
+    $('#'+pref+'_validos_p').text(pValidos + '%');
+    $('#'+pref+'_blancos_p').text(pBlancos + '%');
+    $('#'+pref+'_nulos_p').text(pNulos + '%');
+}
+
+/* LLAMADAS */
+
+pintarDetalle(data.detalle_gob, votosGob, 'g');
+pintarDetalle(data.detalle_asam, votosAsam, 'a');
+pintarDetalle(data.detalle_asam_pob, votosAsamPob, 'ap');
 
 
 /* ESCRIBIR EN PANEL */
 
-$('#det_validos').text(validos);
-$('#det_validos_p').text(p_validos+'%');
 
-$('#det_blancos').text(blancos);
-$('#det_blancos_p').text(p_blancos+'%');
-
-$('#det_nulos').text(nulos);
-$('#det_nulos_p').text(p_nulos+'%');
-
-$('#det_emitidos').text(emitidos);
 
 });
 
@@ -826,6 +861,10 @@ $('.card-header:contains("Alcalde")').text('Resultados Gráficos Gobernador');
 $('.card-header:contains("Concejal")').text('Resultados Gráficos Asambleísta');
 
 }
+
+$(document).ready(function(){
+    actualizarGraficos();
+});
 
 
 </script>

@@ -97,7 +97,12 @@ $concejal = DB::table('partido_cargo as pc')
 
 @endphp
 
-
+<style>
+    .is-invalid {
+        border: 2px solid red !important;
+        background-color: #ffe6e6;
+    }
+</style>
 
 <div class="card shadow-lg">
 
@@ -114,7 +119,6 @@ $concejal = DB::table('partido_cargo as pc')
             </button>
 
             <ul class="dropdown-menu dropdown-menu-end">
-
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
@@ -123,14 +127,9 @@ $concejal = DB::table('partido_cargo as pc')
                         </button>
                     </form>
                 </li>
-
             </ul>
-
         </div>
-
     </div>
-
-
 
     <div class="card-body">
 
@@ -161,8 +160,6 @@ $concejal = DB::table('partido_cargo as pc')
                     </select>
 
                 </div>
-
-
 
                 <div class="col-md-2">
                     <label class="fw-bold">Provincia</label>
@@ -202,250 +199,348 @@ $concejal = DB::table('partido_cargo as pc')
 
 
 
-                {{-- ======================
-GOBERNADOR
-====================== --}}
+                <div class="accordion" id="accordionResultados">
 
-                @if(Auth::user()->tipo_eleccion == 'Gobernador')
+                    {{-- ======================
+    GOBERNADOR
+    ====================== --}}
+                    @if(Auth::user()->tipo_eleccion == 'Gobernador')
 
-                <h5 class="text-primary">Votos Gobernador</h5>
+                    <!-- ================= GOBERNADOR ================= -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#gobernadorCollapse">
+                                Votos Gobernador
+                            </button>
+                        </h2>
 
-                <table class="table">
+                        <div id="gobernadorCollapse" class="accordion-collapse collapse show" data-bs-parent="#accordionResultados">
+                            <div class="accordion-body">
 
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Partido</th>
-                            <th>Votos Gobernador</th>
-                        </tr>
-                    </thead>
+                                <table class="table">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Partido</th>
+                                            <th>Votos Gobernador</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($gobernador as $partido)
+                                        <tr>
+                                            <td>
+                                                <strong>{{ $partido->sigla }}</strong><br>
+                                                <small>{{ $partido->nombre }}</small>
+                                            </td>
+                                            <td>
+                                                <input type="number"
+                                                    name="votos[{{ $partido->id_partido_cargo }}]"
+                                                    class="form-control votos sumar gobernador"
+                                                    value="0" min="0">
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
 
-                    <tbody>
+                                <div class="card p-3 border-primary">
+                                    <h6 class="text-primary">Gobernador</h6>
 
-                        @foreach($gobernador as $partido)
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label>Blancos</label>
+                                            <input type="number" name="especial[gobernador][blancos]" class="form-control sumar gobernador" value="0">
+                                        </div>
 
-                        <tr>
+                                        <div class="col-md-4">
+                                            <label>Nulos</label>
+                                            <input type="number" name="especial[gobernador][nulos]" class="form-control sumar gobernador" value="0">
+                                        </div>
+                                    </div>
 
-                            <td>
-                                <strong>{{ $partido->sigla }}</strong>
-                                <br>
-                                <small>{{ $partido->nombre }}</small>
-                            </td>
+                                    <div class="mt-2">
+                                        <label>Total Gobernador</label>
+                                        <input type="number" id="total_gobernador" class="form-control" readonly>
+                                    </div>
+                                </div>
 
-                            <td>
-                                <input type="number"
-                                    name="votos[{{ $partido->id_partido_cargo }}]"
-                                    class="form-control votos sumar"
-                                    value="0"
-                                    min="0">
-                            </td>
+                            </div>
+                        </div>
+                    </div>
 
-                        </tr>
+                    <!-- ================= ASAMBLEÍSTA TERRITORIO ================= -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#territorioCollapse">
+                                Votos Asambleísta por Territorio
+                            </button>
+                        </h2>
 
-                        @endforeach
+                        <div id="territorioCollapse" class="accordion-collapse collapse" data-bs-parent="#accordionResultados">
+                            <div class="accordion-body">
 
-                    </tbody>
+                                <table class="table">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Partido</th>
+                                            <th>Votos</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($asambleista as $partido)
+                                        <tr>
+                                            <td>
+                                                <strong>{{ $partido->sigla }}</strong><br>
+                                                <small>{{ $partido->nombre }}</small>
+                                            </td>
+                                            <td>
+                                                <input type="number"
+                                                    name="votos[{{ $partido->id_partido_cargo }}]"
+                                                    class="form-control votos sumar asambleista"
+                                                    value="0" min="0">
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
 
-                </table>
+                                <div class="card p-3 border-primary">
+                                    <h6 class="text-primary">Asambleísta Territorio</h6>
 
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label>Blancos</label>
+                                            <input type="number" name="especial[asambleista][blancos]" class="form-control sumar asambleista" value="0">
+                                        </div>
 
+                                        <div class="col-md-4">
+                                            <label>Nulos</label>
+                                            <input type="number" name="especial[asambleista][nulos]" class="form-control sumar asambleista" value="0">
+                                        </div>
+                                    </div>
 
-                <h5 class="text-primary">Votos Asambleísta</h5>
+                                    <div class="mt-2">
+                                        <label>Total</label>
+                                        <input type="number" id="total_asambleista" class="form-control" readonly>
+                                    </div>
+                                </div>
 
-                <table class="table">
+                            </div>
+                        </div>
+                    </div>
 
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Partido</th>
-                            <th>Votos Asambleísta</th>
-                        </tr>
-                    </thead>
+                    <!-- ================= ASAMBLEÍSTA POBLACIÓN ================= -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#poblacionCollapse">
+                                Votos Asambleísta por Población
+                            </button>
+                        </h2>
 
-                    <tbody>
+                        <div id="poblacionCollapse" class="accordion-collapse collapse" data-bs-parent="#accordionResultados">
+                            <div class="accordion-body">
 
-                        @foreach($asambleista as $partido)
+                                <table class="table">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Partido</th>
+                                            <th>Votos</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($asambleista_poblacion as $partido)
+                                        <tr>
+                                            <td>
+                                                <strong>{{ $partido->sigla }}</strong><br>
+                                                <small>{{ $partido->nombre }}</small>
+                                            </td>
+                                            <td>
+                                                <input type="number"
+                                                    name="votos[{{ $partido->id_partido_cargo }}]"
+                                                    class="form-control votos sumar asambleista_poblacion"
+                                                    value="0" min="0">
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
 
-                        <tr>
+                                <div class="card p-3 border-primary">
+                                    <h6 class="text-primary">Asambleísta Población</h6>
 
-                            <td>
-                                <strong>{{ $partido->sigla }}</strong>
-                                <br>
-                                <small>{{ $partido->nombre }}</small>
-                            </td>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label>Blancos</label>
+                                            <input type="number" name="especial[asambleista_poblacion][blancos]" class="form-control sumar asambleista_poblacion" value="0">
+                                        </div>
 
-                            <td>
-                                <input type="number"
-                                    name="votos[{{ $partido->id_partido_cargo }}]"
-                                    class="form-control votos"
-                                    value="0"
-                                    min="0">
-                            </td>
+                                        <div class="col-md-4">
+                                            <label>Nulos</label>
+                                            <input type="number" name="especial[asambleista_poblacion][nulos]" class="form-control sumar asambleista_poblacion" value="0">
+                                        </div>
+                                    </div>
 
-                        </tr>
+                                    <div class="mt-2">
+                                        <label>Total</label>
+                                        <input type="number" id="total_asambleista_poblacion" class="form-control" readonly>
+                                    </div>
+                                </div>
 
-                        @endforeach
+                            </div>
+                        </div>
+                    </div>
 
-                    </tbody>
+                    @endif
 
-                </table>
-
-                <h5 class="text-primary">Votos Asambleísta por Población</h5>
-
-                <table class="table">
-
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Partido</th>
-                            <th>Votos Asambleísta Población</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        @foreach($asambleista_poblacion as $partido)
-
-                        <tr>
-
-                            <td>
-                                <strong>{{ $partido->sigla }}</strong>
-                                <br>
-                                <small>{{ $partido->nombre }}</small>
-                            </td>
-
-                            <td>
-                                <input type="number"
-                                    name="votos[{{ $partido->id_partido_cargo }}]"
-                                    class="form-control votos"
-                                    value="0"
-                                    min="0">
-                            </td>
-
-                        </tr>
-
-                        @endforeach
-
-                    </tbody>
-
-                </table>
-
-
-                @endif
-
+                </div>
 
 
                 {{-- ======================
 ALCALDE
 ====================== --}}
+                <div class="accordion" id="accordionResultadosAlcaldia">
 
-                @if(Auth::user()->tipo_eleccion == 'Alcalde')
+                    @if(Auth::user()->tipo_eleccion == 'Alcalde')
 
-                <h5 class="text-primary">Votos Alcalde</h5>
+                    <!-- ================= ALCALDE ================= -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#alcaldeCollapse">
+                                Votos Alcalde
+                            </button>
+                        </h2>
 
-                <table class="table">
+                        <div id="alcaldeCollapse" class="accordion-collapse collapse show" data-bs-parent="#accordionResultadosAlcaldia">
+                            <div class="accordion-body">
 
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Partido</th>
-                            <th>Votos Alcalde</th>
-                        </tr>
-                    </thead>
+                                <table class="table">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Partido</th>
+                                            <th>Votos Alcalde</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($alcalde as $partido)
+                                        <tr>
+                                            <td>
+                                                <strong>{{ $partido->sigla }}</strong><br>
+                                                <small>{{ $partido->nombre }}</small>
+                                            </td>
+                                            <td>
+                                                <input type="number"
+                                                    name="votos[{{ $partido->id_partido_cargo }}]"
+                                                    class="form-control votos sumar alcalde"
+                                                    value="0" min="0">
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
 
-                    <tbody>
+                                <div class="card p-3 border-success">
+                                    <h6 class="text-success">Alcalde</h6>
 
-                        @foreach($alcalde as $partido)
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label>Blancos</label>
+                                            <input type="number" name="especial[alcalde][blancos]" class="form-control sumar alcalde" value="0">
+                                        </div>
 
-                        <tr>
+                                        <div class="col-md-4">
+                                            <label>Nulos</label>
+                                            <input type="number" name="especial[alcalde][nulos]" class="form-control sumar alcalde" value="0">
+                                        </div>
+                                    </div>
 
-                            <td>
-                                <strong>{{ $partido->sigla }}</strong>
-                                <br>
-                                <small>{{ $partido->nombre }}</small>
-                            </td>
+                                    <div class="mt-2">
+                                        <label>Total Alcalde</label>
+                                        <input type="number" id="total_alcalde" class="form-control" readonly>
+                                    </div>
+                                </div>
 
-                            <td>
-                                <input type="number"
-                                    name="votos[{{ $partido->id_partido_cargo }}]"
-                                    class="form-control votos sumar"
-                                    value="0"
-                                    min="0">
-                            </td>
-
-                        </tr>
-
-                        @endforeach
-
-                    </tbody>
-
-                </table>
-
-
-
-                <h5 class="text-primary">Votos Concejal</h5>
-
-                <table class="table">
-
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Partido</th>
-                            <th>Votos Concejal</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        @foreach($concejal as $partido)
-
-                        <tr>
-
-                            <td>
-                                <strong>{{ $partido->sigla }}</strong>
-                                <br>
-                                <small>{{ $partido->nombre }}</small>
-                            </td>
-
-                            <td>
-                                <input type="number"
-                                    name="votos[{{ $partido->id_partido_cargo }}]"
-                                    class="form-control votos"
-                                    value="0"
-                                    min="0">
-                            </td>
-
-                        </tr>
-
-                        @endforeach
-
-                    </tbody>
-
-                </table>
-
-                @endif
-
-
-
-                <h5 class="text-primary">Votos Especiales</h5>
-
-                <div class="row">
-
-                    <div class="col-md-4">
-                        <label>Blancos</label>
-                        <input type="number" name="blancos" class="form-control votos sumar" value="0">
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="col-md-4">
-                        <label>Nulos</label>
-                        <input type="number" name="nulos" class="form-control votos sumar" value="0">
+                    <!-- ================= CONCEJAL ================= -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#concejalCollapse">
+                                Votos Concejal
+                            </button>
+                        </h2>
+
+                        <div id="concejalCollapse" class="accordion-collapse collapse" data-bs-parent="#accordionResultadosAlcaldia">
+                            <div class="accordion-body">
+
+                                <table class="table">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Partido</th>
+                                            <th>Votos Concejal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($concejal as $partido)
+                                        <tr>
+                                            <td>
+                                                <strong>{{ $partido->sigla }}</strong><br>
+                                                <small>{{ $partido->nombre }}</small>
+                                            </td>
+                                            <td>
+                                                <input type="number"
+                                                    name="votos[{{ $partido->id_partido_cargo }}]"
+                                                    class="form-control votos sumar concejal"
+                                                    value="0" min="0">
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+
+                                <div class="card p-3 border-success">
+                                    <h6 class="text-success">Concejal</h6>
+
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label>Blancos</label>
+                                            <input type="number" name="especial[concejal][blancos]" class="form-control sumar concejal" value="0">
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label>Nulos</label>
+                                            <input type="number" name="especial[concejal][nulos]" class="form-control sumar concejal" value="0">
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-2">
+                                        <label>Total Concejal</label>
+                                        <input type="number" id="total_concejal" class="form-control" readonly>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
                     </div>
 
+                    @endif
+
+                </div>
+
+
+
+                {{-- TOTAL GENERAL --}}
+                <!-- <div class="row mt-3">
                     <div class="col-md-4">
-                        <label>Total papeletas</label>
+                        <label>Total general de votos</label>
                         <input type="number"
                             name="total_papeletas"
                             id="total_papeletas"
                             class="form-control"
+
                             readonly>
                     </div>
-
-                </div>
+                </div> -->
 
 
                 <hr>
@@ -466,7 +561,6 @@ ALCALDE
                 <button type="button" id="btnGuardar" class="btn btn-success w-100">
                     Guardar Resultados
                 </button>
-
 
             </div>
 
@@ -510,6 +604,9 @@ ALCALDE
 
         mesaSelect.addEventListener("change", function() {
 
+            // 🔥 LIMPIAR TODO AL CAMBIAR DE MESA
+            limpiarFormulario();
+
             const texto = this.options[this.selectedIndex].text;
 
             if (this.value != "") {
@@ -529,24 +626,31 @@ ALCALDE
 
         });
 
-
-
         document.getElementById("btnGuardar").addEventListener("click", function() {
 
-            const imagen = document.querySelector("input[name='imagen_acta']").value;
+            let valido = true;
 
-            // if (imagen == "") {
+            document.querySelectorAll("input[type='number']").forEach(input => {
 
-            //     Swal.fire({
-            //         icon: "error",
-            //         title: "Foto obligatoria",
-            //         text: "Debe subir la foto del acta antes de guardar"
-            //     });
+                if (input.value === "" || input.value < 0) {
+                    valido = false;
+                    input.classList.add("is-invalid");
+                } else {
+                    input.classList.remove("is-invalid");
+                }
 
-            //     return;
+            });
 
-            // }
+            if (!valido) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error en los datos",
+                    text: "Verifique que no existan campos vacíos o valores negativos"
+                });
+                return;
+            }
 
+            // CONFIRMACIÓN
             Swal.fire({
                 title: "¿Guardar resultados?",
                 text: "Verifique que los datos sean correctos",
@@ -560,16 +664,11 @@ ALCALDE
 
                     Swal.fire({
                         title: "Guardando resultados...",
-                        text: "Espere por favor",
                         allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
+                        didOpen: () => Swal.showLoading()
                     });
 
                     document.querySelector("#formResultados").submit();
-
                 }
 
             });
@@ -577,27 +676,104 @@ ALCALDE
         });
 
 
+        function calcularTotalesPorCargo() {
 
-        function calcularTotal() {
+            function sumar(clase) {
+                let total = 0;
+                document.querySelectorAll("." + clase).forEach(input => {
+                    total += parseInt(input.value) || 0;
+                });
+                return total;
+            }
 
-            let total = 0;
+            if (document.getElementById("total_gobernador")) {
+                document.getElementById("total_gobernador").value = sumar("gobernador");
+            }
 
-            document.querySelectorAll(".sumar").forEach(function(input) {
+            if (document.getElementById("total_asambleista")) {
+                document.getElementById("total_asambleista").value = sumar("asambleista");
+            }
 
-                total += parseInt(input.value) || 0;
+            if (document.getElementById("total_asambleista_poblacion")) {
+                document.getElementById("total_asambleista_poblacion").value = sumar("asambleista_poblacion");
+            }
+
+            if (document.getElementById("total_alcalde")) {
+                document.getElementById("total_alcalde").value = sumar("alcalde");
+            }
+
+            if (document.getElementById("total_concejal")) {
+                document.getElementById("total_concejal").value = sumar("concejal");
+            }
+        }
+
+        document.querySelectorAll(".votos, .sumar").forEach(function(input) {
+            input.addEventListener("input", function() {
+
+                calcularTotalesPorCargo();
+            });
+        });
+
+
+        const inputs = document.querySelectorAll("input[type='number']");
+
+        inputs.forEach(input => {
+
+            input.addEventListener("input", function() {
+
+                // 🚫 No permitir negativos
+                if (this.value < 0) {
+                    this.value = 0;
+
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Valor inválido",
+                        text: "No se permiten números negativos"
+                    });
+                }
+                // 🚫 Quitar ceros a la izquierda 🔥
+                if (this.value.length > 1 && this.value.startsWith("0")) {
+                    this.value = this.value.replace(/^0+/, "");
+                }
 
             });
 
-            document.getElementById("total_papeletas").value = total;
-
-        }
-
-        document.querySelectorAll(".sumar").forEach(function(input) {
-
-            input.addEventListener("input", calcularTotal);
+            // ✅ SOLO cuando el usuario SALE del campo
+            input.addEventListener("blur", function() {
+                if (this.value === "") {
+                    this.value = 0;
+                }
+            });
 
         });
 
+        function limpiarFormulario() {
+
+            // 🔹 Todos los inputs numéricos a 0
+            document.querySelectorAll("input[type='number']").forEach(input => {
+                input.value = 0;
+                input.classList.remove("is-invalid");
+            });
+
+            // 🔹 Limpiar archivo
+            const fileInput = document.getElementById("imagen_acta");
+            if (fileInput) fileInput.value = "";
+
+            // 🔹 Resetear totales
+            const totales = [
+                "total_gobernador",
+                "total_asambleista",
+                "total_asambleista_poblacion",
+                "total_alcalde",
+                "total_concejal",
+                "total_papeletas"
+            ];
+
+            totales.forEach(id => {
+                let el = document.getElementById(id);
+                if (el) el.value = 0;
+            });
+        }
 
     });
 </script>
