@@ -365,23 +365,9 @@ const votos = {!! json_encode($votos) !!};
 
 const totalVotos = votos.reduce((a,b)=>a+b,0);
 
-function ajustarAlturaCanvas(canvasId, cantidad){
 
-    let alturaPorBarra = 45;
 
-    let altura = cantidad * alturaPorBarra;
 
-    // 🔥 LIMITE MÁXIMO
-    let alturaMax = 400;
-
-    if(altura > alturaMax){
-        altura = alturaMax;
-    }
-
-    document.getElementById(canvasId).style.height = altura + "px";
-}
-
-ajustarAlturaCanvas('graficoResultados', labels.length);
 const ctx = document.getElementById('graficoResultados');
 
 
@@ -461,7 +447,7 @@ const votosAsamPob = {!! json_encode($votosAsamPob) !!};
 const totalAsam = votosAsam.reduce((a,b)=>a+b,0);
 const totalAsamPobl = votosAsamPob.reduce((a,b)=>a+b,0);
 
-ajustarAlturaCanvas('graficoAsambleista', labelsAsam.length);
+
 const ctx2 = document.getElementById('graficoAsambleista');
 
 const graficoAsam = new Chart(ctx2, {
@@ -526,7 +512,7 @@ const graficoAsam = new Chart(ctx2, {
 });
 
 
-ajustarAlturaCanvas('graficoAsamPoblacion', labelsAsamPob.length);
+
 const ctx3 = document.getElementById('graficoAsamPoblacion');
 
 const graficoAsamPob = new Chart(ctx3, {
@@ -809,7 +795,7 @@ votosAsamPob = [0];
 
 graficoGob.data.labels = labelsGob;
 graficoGob.data.datasets[0].data = votosGob;
-ajustarAlturaCanvas('graficoResultados', labelsGob.length);
+
 graficoGob.update();
 
 
@@ -817,14 +803,14 @@ graficoGob.update();
 
 graficoAsam.data.labels = labelsAsam;
 graficoAsam.data.datasets[0].data = votosAsam;
-ajustarAlturaCanvas('graficoAsambleista', labelsAsam.length);
+
 graficoAsam.update();
 
 /* ACTUALIZAR ASAMBLEISTA POBLACION */
 
 graficoAsamPob.data.labels = labelsAsamPob;
 graficoAsamPob.data.datasets[0].data = votosAsamPob;
-ajustarAlturaCanvas('graficoAsamPoblacion', labelsAsamPob.length);
+
 graficoAsamPob.update();
 
 
