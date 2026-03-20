@@ -72,7 +72,6 @@ $detalle = DB::table('votos_especiales as ve')
 ->select(
     DB::raw('SUM(ve.blancos) as blancos'),
     DB::raw('SUM(ve.nulos) as nulos'),
-    DB::raw('SUM(DISTINCT r.total_papeletas) as emitidos') // ✅ CORRECTO
 )->first();
 
 
@@ -368,8 +367,16 @@ const totalVotos = votos.reduce((a,b)=>a+b,0);
 
 function ajustarAlturaCanvas(canvasId, cantidad){
 
-    let alturaPorBarra = 50; // puedes ajustar
+    let alturaPorBarra = 45;
+
     let altura = cantidad * alturaPorBarra;
+
+    // 🔥 LIMITE MÁXIMO
+    let alturaMax = 400;
+
+    if(altura > alturaMax){
+        altura = alturaMax;
+    }
 
     document.getElementById(canvasId).style.height = altura + "px";
 }
@@ -397,7 +404,7 @@ const graficoGob = new Chart(ctx, {
     },
 
     options: {
-     esponsive: true,
+     responsive: true,
      maintainAspectRatio: false, // 🔥 OBLIGATORIO
         indexAxis: 'y',
 
