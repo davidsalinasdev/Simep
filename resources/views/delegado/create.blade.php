@@ -108,9 +108,13 @@ $concejal = DB::table('partido_cargo as pc')
 
     <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
 
-        <h5 class="mb-0">
-            Registro de Resultados del departamento de {{ $ubicacion->departamento }} - SIMEP - {{ Auth::user()->tipo_eleccion }}
-        </h5>
+        <h4 class="mb-3 d-none d-md-block">
+            Registro de votaciones para {{ Auth::user()->tipo_eleccion }} en el departamento de {{ $ubicacion->departamento }}
+        </h4>
+
+        <h4 class="mb-3 d-md-none">
+            {{ $ubicacion->departamento }} <br>{{ Auth::user()->tipo_eleccion }}
+        </h4>
 
         <div class="dropdown">
 
@@ -143,7 +147,8 @@ $concejal = DB::table('partido_cargo as pc')
 
                 <div class="col-md-4">
 
-                    <label class="fw-bold">Mesa</label>
+                    <label class="fw-bold"
+                        S>Mesa</label>
 
                     <select id="mesaSelect" name="id_mesa" class="form-select" required>
 

@@ -103,9 +103,12 @@ td:nth-child(2), td:nth-child(3){
 </style>
 
 <div class="container-fluid mt-8">
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex justify-content-between align-items-center">	
 
-        <h4 class="mb-3">Resultados Preliminares - SIMEP</h4>
+        <h4 class="mb-3 d-none d-md-block" >Resultados Preliminares</h4>
+		
+		<h4 class="mb-3 d-md-none" >SIMEP</h4>
+		
 
         <div>
             <a href="{{ route('consulta') }}" class="btn btn-primary">
@@ -158,7 +161,7 @@ td:nth-child(2), td:nth-child(3){
 
 		<select class="form-select" id="departamento">
 
-		<option value="">-seleccionar-</option>
+		<option value="" disabled selected>-seleccionar-</option>
 
 		@foreach($departamentos as $dep)
 
@@ -179,7 +182,7 @@ td:nth-child(2), td:nth-child(3){
 		<label class="form-label fw-bold">Provincia</label>
 
 		<select class="form-select" id="provincia">
-		<option value="">-seleccionar-</option>
+		<option value="" disabled selected>-seleccionar-</option>
 		</select>
 
 		</div>
@@ -191,7 +194,7 @@ td:nth-child(2), td:nth-child(3){
 		<label class="form-label fw-bold">Municipio</label>
 
 		<select class="form-select" id="municipio">
-		<option value="">-seleccionar-</option>
+		<option value="" disabled selected>-seleccionar-</option>
 		</select>
 
 		</div>
@@ -203,7 +206,7 @@ td:nth-child(2), td:nth-child(3){
 		<label class="form-label fw-bold">Localidad</label>
 
 		<select class="form-select" id="localidad">
-		<option value="">-seleccionar-</option>
+		<option value="" disabled selected>-seleccionar-</option>
 		</select>
 
 		</div>
@@ -215,7 +218,7 @@ td:nth-child(2), td:nth-child(3){
 		<label class="form-label fw-bold">Recinto</label>
 
 		<select class="form-select" id="recinto">
-		<option value="">-seleccionar-</option>
+		<option value="" disabled selected>-seleccionar-</option>
 		</select>
 
 		</div>

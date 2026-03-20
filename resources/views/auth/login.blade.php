@@ -9,7 +9,7 @@
             <div class="card shadow">
 
                 <div class="card-header text-center bg-warning text-dark">
-                    <h4>SIMEPP - INICIAR SESIÓN</h4>
+                    <h4>INICIAR SESIÓN</h4>
                 </div>
 
                 <div class="card-body">
