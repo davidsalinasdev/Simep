@@ -366,7 +366,18 @@ const votos = {!! json_encode($votos) !!};
 
 const totalVotos = votos.reduce((a,b)=>a+b,0);
 
+function ajustarAlturaCanvas(canvasId, cantidad){
+
+    let alturaPorBarra = 50; // puedes ajustar
+    let altura = cantidad * alturaPorBarra;
+
+    document.getElementById(canvasId).style.height = altura + "px";
+}
+
+ajustarAlturaCanvas('graficoResultados', labels.length);
 const ctx = document.getElementById('graficoResultados');
+
+
 
 const graficoGob = new Chart(ctx, {
 
@@ -386,7 +397,8 @@ const graficoGob = new Chart(ctx, {
     },
 
     options: {
-
+     esponsive: true,
+     maintainAspectRatio: false, // 🔥 OBLIGATORIO
         indexAxis: 'y',
 
         scales: {
@@ -442,6 +454,7 @@ const votosAsamPob = {!! json_encode($votosAsamPob) !!};
 const totalAsam = votosAsam.reduce((a,b)=>a+b,0);
 const totalAsamPobl = votosAsamPob.reduce((a,b)=>a+b,0);
 
+ajustarAlturaCanvas('graficoAsambleista', labelsAsam.length);
 const ctx2 = document.getElementById('graficoAsambleista');
 
 const graficoAsam = new Chart(ctx2, {
@@ -462,7 +475,8 @@ const graficoAsam = new Chart(ctx2, {
     },
 
     options: {
-
+		responsive: true,
+		maintainAspectRatio: false, // 🔥 OBLIGATORIO
         indexAxis: 'y',
 
         scales: {
@@ -504,6 +518,8 @@ const graficoAsam = new Chart(ctx2, {
 
 });
 
+
+ajustarAlturaCanvas('graficoAsamPoblacion', labelsAsamPob.length);
 const ctx3 = document.getElementById('graficoAsamPoblacion');
 
 const graficoAsamPob = new Chart(ctx3, {
@@ -524,6 +540,8 @@ const graficoAsamPob = new Chart(ctx3, {
     },
 
     options: {
+		responsive: true,
+        maintainAspectRatio: false, // 🔥 OBLIGATORIO
 
         indexAxis: 'y',
 
@@ -784,6 +802,7 @@ votosAsamPob = [0];
 
 graficoGob.data.labels = labelsGob;
 graficoGob.data.datasets[0].data = votosGob;
+ajustarAlturaCanvas('graficoResultados', labelsGob.length);
 graficoGob.update();
 
 
@@ -791,12 +810,14 @@ graficoGob.update();
 
 graficoAsam.data.labels = labelsAsam;
 graficoAsam.data.datasets[0].data = votosAsam;
+ajustarAlturaCanvas('graficoAsambleista', labelsAsam.length);
 graficoAsam.update();
 
 /* ACTUALIZAR ASAMBLEISTA POBLACION */
 
 graficoAsamPob.data.labels = labelsAsamPob;
 graficoAsamPob.data.datasets[0].data = votosAsamPob;
+ajustarAlturaCanvas('graficoAsamPoblacion', labelsAsamPob.length);
 graficoAsamPob.update();
 
 
