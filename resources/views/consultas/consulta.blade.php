@@ -239,7 +239,9 @@ td:nth-child(2), td:nth-child(3){
                 </div>
 
                 <div class="card-body">
-                    <canvas id="graficoResultados"></canvas>
+                    <div style="height:400px; overflow-y:auto;">
+    <canvas id="graficoResultados"></canvas>
+</div>
 					<div class="card mt-2">
 					<div class="card-header bg-danger text-white">Detalle Gobernador</div>
 					<div class="card-body">
@@ -279,7 +281,9 @@ td:nth-child(2), td:nth-child(3){
 				</div>
 
 				<div class="card-body">
-					<canvas id="graficoAsambleista"></canvas>
+					<div style="height:400px; overflow-y:auto;">
+    <canvas id="graficoAsambleista"></canvas>
+</div>
 					<div class="card mt-2">
 					<div class="card-header bg-primary text-white">Detalle Asambleísta</div>
 					<div class="card-body">
@@ -318,7 +322,9 @@ td:nth-child(2), td:nth-child(3){
 				</div>
 
 				<div class="card-body">
-					<canvas id="graficoAsamPoblacion"></canvas>
+				<div style="height:400px; overflow-y:auto;">
+    <canvas id="graficoAsamPoblacion"></canvas>
+</div>
 					<div class="card mt-2">
 					<div class="card-header bg-warning text-white">Detalle Asambleísta Población</div>
 					<div class="card-body">
