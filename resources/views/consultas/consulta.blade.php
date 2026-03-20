@@ -413,25 +413,42 @@ const graficoGob = new Chart(ctx, {
 
            datalabels: {
 
-    anchor: 'end',     // 🔥 se pega al final de la barra
-    align: 'right',    // 🔥 lo saca hacia afuera
+				anchor: function(context){
+					let value = context.dataset.data[context.dataIndex];
+					let max = Math.max(...context.dataset.data);
 
-    color: '#000',     // negro para que se vea afuera
+					return value > (max * 0.7) ? 'center' : 'end';
+				},
 
-    offset: 10,        // 🔥 separa un poco del borde
+				align: function(context){
+					let value = context.dataset.data[context.dataIndex];
+					let max = Math.max(...context.dataset.data);
 
-    font: {
-        size: 12,
-        weight: 'bold'
-    },
+					return value > (max * 0.7) ? 'center' : 'right';
+				},
 
-    formatter: function(value){
+				color: function(context){
+					let value = context.dataset.data[context.dataIndex];
+					let max = Math.max(...context.dataset.data);
 
-        let porcentaje = ((value / totalVotos) * 100).toFixed(1);
+					return value > (max * 0.7) ? '#fff' : '#000';
+				},
 
-        return value + " votos (" + porcentaje + "%)";
-    }
-}
+				offset: 8,
+
+				font: {
+					size: 12,
+					weight: 'bold'
+				},
+
+				formatter: function(value, context){
+
+					let total = context.dataset.data.reduce((a,b)=>a+b,0);
+					let porcentaje = ((value / total) * 100).toFixed(1);
+
+					return value + " votos (" + porcentaje + "%)";
+				}
+			}
 
         }
 
