@@ -490,25 +490,27 @@ const graficoAsam = new Chart(ctx2, {
                 display: false
             },
 
-            datalabels: {
+           datalabels: {
 
-                anchor: 'center',
-                align: 'center',
+				anchor: 'end',     // 🔥 se pega al final de la barra
+				align: 'right',    // 🔥 lo saca hacia afuera
 
-                color: '#000',
+				color: '#000',     // negro para que se vea afuera
 
-                font: {
-                    size: 12
-                },
+				offset: 10,        // 🔥 separa un poco del borde
 
-                formatter: function(value){
+				font: {
+					size: 12,
+					weight: 'bold'
+				},
 
-                    let porcentaje = ((value / totalAsam) * 100).toFixed(1);
+				formatter: function(value){
 
-                    return value + " votos (" + porcentaje + "%)";
-                }
-            }
+					let porcentaje = ((value / totalAsam) * 100).toFixed(1);
 
+					return value + " votos (" + porcentaje + "%)";
+				}
+			}
         }
 
     },
@@ -556,24 +558,27 @@ const graficoAsamPob = new Chart(ctx3, {
                 display: false
             },
 
-            datalabels: {
+             datalabels: {
 
-                anchor: 'center',
-                align: 'center',
+				anchor: 'end',     // 🔥 se pega al final de la barra
+				align: 'right',    // 🔥 lo saca hacia afuera
 
-                color: '#000',
+				color: '#000',     // negro para que se vea afuera
 
-                font: {
-                    size: 12
-                },
+				offset: 10,        // 🔥 separa un poco del borde
 
-                formatter: function(value){
+				font: {
+					size: 12,
+					weight: 'bold'
+				},
 
-                    let porcentaje = ((value / totalAsamPobl) * 100).toFixed(1);
+				formatter: function(value){
 
-                    return value + " votos (" + porcentaje + "%)";
-                }
-            }
+					let porcentaje = ((value / totalAsamPobl) * 100).toFixed(1);
+
+					return value + " votos (" + porcentaje + "%)";
+				}
+			}
 
         }
 
