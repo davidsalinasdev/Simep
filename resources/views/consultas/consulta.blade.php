@@ -105,7 +105,7 @@ td:nth-child(2), td:nth-child(3){
 <div class="container-fluid mt-8">
     <div class="d-flex justify-content-between align-items-center">	
 
-        <h4 class="mb-3 d-none d-md-block" >Resultados Preliminares</h4>
+        <h4 class="mb-3 d-none d-md-block" >Resultados Preliminares David Sp</h4>
 		
 		<h4 class="mb-3 d-md-none" >SIMEP</h4>
 		
@@ -246,7 +246,10 @@ td:nth-child(2), td:nth-child(3){
     <canvas id="graficoResultados"></canvas>
 </div>
 					<div class="card mt-2">
-					<div class="card-header bg-danger text-white">Detalle Gobernador</div>
+					
+					<div class="card-header bg-danger text-white" id="titulo_detalle_1">
+						Detalle Gobernador
+					</div>
 					<div class="card-body">
 						<table class="table table-sm mb-0">
 							<tr>
@@ -764,25 +767,33 @@ function actualizarGraficos(){
 	console.log(tipo_eleccion);
 
 /* CAMBIAR TITULOS */
-
 if(tipo_eleccion == 'alcaldia'){
 
+    // PRIMER PANEL
+    $('.card-header').eq(0).text('Resultados Gráficos Alcalde');
+    $('#titulo_detalle_1').text('Detalle Alcalde');
+
+    // SEGUNDO PANEL
     $('#titulo_grafico_2').text('Resultados Gráficos Concejal');
     $('#titulo_detalle_2').text('Detalle Concejal');
 
-    $('.card-header').eq(0).text('Resultados Gráficos Alcalde');
-
+    // OCULTAR TERCERO
     $('#panelAsamPoblacion').hide();
 
 }else{
 
-    $('#titulo_grafico_2').text('Resultados Gráficos Asambleísta');
-    $('#titulo_detalle_2').text('Detalle Asambleísta');
-
+    // PRIMER PANEL
     $('.card-header').eq(0).text('Resultados Gráficos Gobernador');
+    $('#titulo_detalle_1').text('Detalle Gobernador');
 
+    // SEGUNDO PANEL
+  $('#titulo_grafico_2').text('Resultados Gráficos Asambleísta Territorio');
+$('#titulo_detalle_2').text('Detalle Asambleísta Territorio');
+
+    // MOSTRAR TERCERO
     $('#panelAsamPoblacion').show();
 }
+
 	
 	
 let departamento = $('#departamento').val();
@@ -944,17 +955,7 @@ $('#municipio').change(actualizarGraficos);
 $('#localidad').change(actualizarGraficos);
 $('#recinto').change(actualizarGraficos);
 
-if(tipo_eleccion == 'alcaldia'){
 
-$('.card-header:contains("Gobernador")').text('Resultados Gráficos Alcalde');
-$('.card-header:contains("Asambleísta")').text('Resultados Gráficos Concejal');
-
-}else{
-
-$('.card-header:contains("Alcalde")').text('Resultados Gráficos Gobernador');
-$('.card-header:contains("Concejal")').text('Resultados Gráficos Asambleísta');
-
-}
 
 $(document).ready(function(){
     actualizarGraficos();
