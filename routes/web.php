@@ -42,12 +42,13 @@ Route::get('/', function () {
 
     $rol = Auth::user()->rol;
 
-    if ($rol == 'delegado_recinto') {
 
+    if ($rol == 'delegado_recinto') {
         return redirect('/delegado/create');
     } elseif ($rol == 'consulta') {
-
         return redirect('/consultas/consulta');
+    } elseif ($rol == 'supervisor') { // 🔥 NUEVO
+        return redirect('/supervisor');
     } else {
 
         return redirect('/login');
@@ -58,69 +59,83 @@ Route::get('/', function () {
 //     return view('dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+/* =========================
+   🔥 ROL: DELEGADO RECINTO
+========================= */
+Route::middleware(['auth', 'rol:delegado_recinto'])->group(function () {
+
+    Route::get('/delegado', [DelegadoController::class, 'index']);
+    Route::get('/delegado/create', [DelegadoController::class, 'create']);
+    Route::post('/delegado', [DelegadoController::class, 'store']);
 
     Route::get('/resultados', [ResultadoController::class, 'create'])->name('resultados.create');
-    Route::post('/resultados', [ResultadoController::class, 'store'])->name('resultados.store');
+    Route::post('/resultados', [ResultadoController::class, 'store'])->name('resultados.store'); // 🔥 AQUI
 });
 
 
-// Rutas Personalizadas para resultados
+
+/* =========================
+   🔥 ROL: CONSULTA
+========================= */
+Route::middleware(['auth', 'rol:consulta'])->group(function () {
+
+    Route::get('/consultas', [ConsultaController::class, 'index']);
+    Route::get('/consultas/consulta', [ConsultaController::class, 'consulta'])->name('consulta');
+    Route::post('/consultas', [ConsultaController::class, 'store']);
+});
+
+
+/* =========================
+   🔥 ROL: SUPERVISOR
+========================= */
+Route::middleware(['auth', 'rol:supervisor'])->group(function () {
+
+    Route::get('/supervisor', [ResultadoController::class, 'supervisor']);
+    Route::get('/supervisor/editar/{id}', [ResultadoController::class, 'editarMesa']);
+    Route::post('/supervisor/actualizar', [ResultadoController::class, 'actualizar']);
+});
+
+
+/* =========================
+   🔥 ROL: (otros si quieres)
+========================= */
+// Ejemplo:
+// Route::middleware(['auth', 'rol:delegado_recinto'])->group(function () {
+//     Route::get('/delegado/create', [DelegadoController::class, 'create']);
+// });
+
+
+/* =========================
+   🔥 RESULTADOS (puedes dejar libre o proteger)
+========================= */
+// Route::middleware(['auth'])->group(function () {
+
+//     Route::get('/resultados', [ResultadoController::class, 'create'])->name('resultados.create');
+//     Route::post('/resultados', [ResultadoController::class, 'store']);
+// });
 
 
 
-Route::get('/partidos', [PartidoController::class, 'index']);
-Route::get('/partidos/create', [PartidoController::class, 'create']);
-Route::post('/partidos', [PartidoController::class, 'store']);
+Route::get('/departamentos', function () {
+    return DB::table('departamentos')->orderBy('nombre')->get();
+});
 
+Route::get('/mesas-por-recinto/{id}', function ($id) {
 
+    $tipo = request('tipo'); // 🔥 recibimos tipo
 
+    $query = DB::table('mesas')
+        ->where('id_recinto', $id);
 
+    if ($tipo == 'gobernacion') {
+        $query->where('estado_gobernacion', 'enviado');
+    } else {
+        $query->where('estado_alcaldia', 'enviado');
+    }
 
-Route::get('/mesas', [MesaController::class, 'index']);
-Route::get('/mesas/create', [MesaController::class, 'create']);
-Route::post('/mesas', [MesaController::class, 'store']);
-
-Route::get('/candidatos/create', [CandidatoController::class, 'create']);
-Route::post('/candidatos', [CandidatoController::class, 'store']);
-
-
-Route::get('/cargos', [CargoController::class, 'index']);
-Route::get('/cargos/create', [CargoController::class, 'create']);
-Route::post('/cargos', [CargoController::class, 'store']);
-
-
-Route::get('/departamentos', [DepartamentoController::class, 'index']);
-Route::get('/departamentos/create', [DepartamentoController::class, 'create']);
-Route::post('/departamentos', [DepartamentoController::class, 'store']);
-
-
-Route::get('/provincias', [ProvinciaController::class, 'index']);
-Route::get('/provincias/create', [ProvinciaController::class, 'create']);
-Route::post('/provincias', [ProvinciaController::class, 'store']);
-
-
-
-Route::get('/municipios', [MunicipioController::class, 'index']);
-Route::get('/municipios/create', [MunicipioController::class, 'create']);
-Route::post('/municipios', [MunicipioController::class, 'store']);
-
-
-Route::get('/recintos', [RecintoController::class, 'index']);
-Route::get('/recintos/create', [RecintoController::class, 'create']);
-Route::post('/recintos', [RecintoController::class, 'store']);
-
-Route::get('/delegado', [DelegadoController::class, 'index']);
-Route::get('/delegado/create', [DelegadoController::class, 'create']);
-Route::post('/delegado', [DelegadoController::class, 'store']);
-
-Route::get('/consultas', [ConsultaController::class, 'index']);
-Route::get('/consultas/consulta', [ConsultaController::class, 'consulta'])->name('consulta');
-Route::post('/consultas', [ConsultaController::class, 'store']);
-
+    return $query->orderBy('numero_mesa')->get();
+});
 
 /* PROVINCIAS */
 

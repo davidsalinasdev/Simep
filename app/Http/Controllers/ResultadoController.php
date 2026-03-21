@@ -115,38 +115,40 @@ VALIDAR CONSISTENCIA
             /* =========================
         GUARDAR VOTOS ESPECIALES (PRO)
         ========================= */
+            /* =========================
+GUARDAR VOTOS ESPECIALES (FIX)
+========================= */
             if ($request->has('especial')) {
 
                 foreach ($request->especial as $cargo => $datos) {
 
-                    $nombreCargo = ucwords(str_replace('_', ' ', $cargo));
+                    $map = [
+                        'gobernador' => 'Gobernador',
+                        'asambleista' => 'Asambleista',
+                        'asambleista_poblacion' => 'Asambleista Poblacion',
+                        'alcalde' => 'Alcalde',
+                        'concejal' => 'Concejal'
+                    ];
+
+                    $nombreCargo = $map[$cargo] ?? null;
+
+                    if (!$nombreCargo) continue;
 
                     $id_cargo = DB::table('cargos')
                         ->where('nombre_cargo', $nombreCargo)
                         ->value('id_cargo');
 
-                    if (!$id_cargo) {
-                        throw new \Exception("Cargo no encontrado: " . $nombreCargo);
-                    }
-
-                    // 🚫 Validar negativos
-                    if (($datos['blancos'] ?? 0) < 0 || ($datos['nulos'] ?? 0) < 0) {
-                        throw new \Exception("Valores negativos no permitidos");
-                    }
-
                     DB::table('votos_especiales')->insert([
-                        'id_resultado' => $id_resultado,
+                        'id_resultado' => $id_resultado, // 🔥 IMPORTANTE
                         'id_cargo' => $id_cargo,
                         'blancos' => intval($datos['blancos'] ?? 0),
                         'nulos' => intval($datos['nulos'] ?? 0),
-                        // 'total_papeletas' => intval($request->total_papeletas),
-                        'tipo_eleccion' => $request->tipo_eleccion,
+                        'tipo_eleccion' => $request->tipo_eleccion, // 🔥 CLAVE
                         'created_at' => now(),
                         'updated_at' => now()
                     ]);
                 }
             }
-
             /* =========================
         ACTUALIZAR MESA
         ========================= */
@@ -179,6 +181,123 @@ VALIDAR CONSISTENCIA
             dd($e->getMessage());
             return redirect()->back()
                 ->with('error', $e->getMessage());
+        }
+    }
+
+    public function supervisor()
+    {
+        if (Auth::user()->rol != 'supervisor') {
+            abort(403);
+        }
+
+        $mesas = DB::table('mesas')
+            ->where('estado_gobernacion', 'enviado')
+            ->orWhere('estado_alcaldia', 'enviado')
+            ->get();
+
+        return view('supervisor.index', compact('mesas'));
+    }
+
+    public function editarMesa($id)
+    {
+        if (Auth::user()->rol != 'supervisor') {
+            abort(403);
+        }
+
+        $resultado = DB::table('resultados')
+            ->where('id_mesa', $id)
+            ->latest()
+            ->first();
+
+        if (!$resultado) {
+            return back()->with('error', 'No hay resultados para esta mesa');
+        }
+
+        // 🔥 VOTOS POR PARTIDO
+        $votos = DB::table('votos_partido as vp')
+            ->join('partido_cargo as pc', 'vp.id_partido_cargo', '=', 'pc.id')
+            ->join('partidos as p', 'pc.id_partido', '=', 'p.id_partido')
+            ->join('cargos as c', 'pc.id_cargo', '=', 'c.id_cargo')
+            ->select(
+                'vp.id',
+                'vp.votos',
+                'p.sigla',
+                'p.nombre',
+                'c.nombre_cargo'
+            )
+            ->where('vp.id_resultado', $resultado->id_resultado)
+            ->get();
+
+        // 🔥 VOTOS ESPECIALES
+        $especiales = DB::table('votos_especiales as ve')
+            ->join('cargos as c', 've.id_cargo', '=', 'c.id_cargo')
+            ->select(
+                've.blancos',
+                've.nulos',
+                'c.nombre_cargo'
+            )
+            ->where('ve.id_resultado', $resultado->id_resultado)
+            ->get();
+
+        return view('supervisor.editar', compact('resultado', 'votos', 'especiales'));
+    }
+    public function actualizar(Request $request)
+    {
+        DB::beginTransaction();
+
+        try {
+
+            // 🔥 1. ACTUALIZAR VOTOS
+            foreach ($request->votos as $id => $v) {
+
+                DB::table('votos_partido')
+                    ->where('id', $id)
+                    ->update([
+                        'votos' => $v,
+                        'updated_at' => now()
+                    ]);
+            }
+
+
+            // 🔥 👉 AQUÍ VA 👇
+            if ($request->has('especial')) {
+
+                foreach ($request->especial as $cargo => $datos) {
+
+                    $nombreCargo = ucwords(str_replace('_', ' ', $cargo));
+
+                    $id_cargo = DB::table('cargos')
+                        ->where('nombre_cargo', $nombreCargo)
+                        ->value('id_cargo');
+
+                    DB::table('votos_especiales')
+                        ->where('id_resultado', $request->id_resultado)
+                        ->where('id_cargo', $id_cargo)
+                        ->update([
+                            'blancos' => intval($datos['blancos'] ?? 0),
+                            'nulos' => intval($datos['nulos'] ?? 0),
+                            'updated_at' => now()
+                        ]);
+                }
+            }
+
+
+            // 🔥 3. DESPUÉS DE ESO
+            DB::table('resultados')
+                ->where('id_resultado', $request->id_resultado)
+                ->update([
+                    'corregido' => true,
+                    'corregido_por' => Auth::id(),
+                    'updated_at' => now()
+                ]);
+
+            DB::commit();
+
+            return back()->with('success', 'Corregido');
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+            return back()->with('error', $e->getMessage());
         }
     }
 }

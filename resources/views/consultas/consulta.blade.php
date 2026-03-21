@@ -279,7 +279,7 @@ td:nth-child(2), td:nth-child(3){
 		
 		<div class="col-lg-4">
 			<div class="card shadow">
-				<div class="card-header fw-bold">
+				<div class="card-header fw-bold" id="titulo_grafico_2">
 					Resultados Gráficos Asambleísta
 				</div>
 
@@ -288,7 +288,9 @@ td:nth-child(2), td:nth-child(3){
     <canvas id="graficoAsambleista"></canvas>
 </div>
 					<div class="card mt-2">
-					<div class="card-header bg-primary text-white">Detalle Asambleísta</div>
+					<div class="card-header bg-primary text-white" id="titulo_detalle_2">
+						Detalle Asambleísta
+					</div>
 					<div class="card-body">
 						<table class="table table-sm mb-0">
 							<tr>
@@ -765,18 +767,21 @@ function actualizarGraficos(){
 
 if(tipo_eleccion == 'alcaldia'){
 
-$('.card-header').eq(0).text('Resultados Gráficos Alcalde');
-$('.card-header').eq(1).text('Resultados Gráficos Concejal');
+    $('#titulo_grafico_2').text('Resultados Gráficos Concejal');
+    $('#titulo_detalle_2').text('Detalle Concejal');
 
-$('#panelAsamPoblacion').hide(); // ocultar tercer gráfico
+    $('.card-header').eq(0).text('Resultados Gráficos Alcalde');
+
+    $('#panelAsamPoblacion').hide();
 
 }else{
 
-$('.card-header').eq(0).text('Resultados Gráficos Gobernador');
-$('.card-header').eq(1).text('Resultados Gráficos Asambleísta');
+    $('#titulo_grafico_2').text('Resultados Gráficos Asambleísta');
+    $('#titulo_detalle_2').text('Detalle Asambleísta');
 
-$('#panelAsamPoblacion').show(); // mostrar tercer gráfico
+    $('.card-header').eq(0).text('Resultados Gráficos Gobernador');
 
+    $('#panelAsamPoblacion').show();
 }
 	
 	
@@ -908,9 +913,18 @@ function pintarDetalle(det, votosArray, pref){
 
 /* LLAMADAS */
 
-pintarDetalle(data.detalle_gob, votosGob, 'g');
-pintarDetalle(data.detalle_asam, votosAsam, 'a');
-pintarDetalle(data.detalle_asam_pob, votosAsamPob, 'ap');
+if(tipo_eleccion == 'alcaldia'){
+
+    pintarDetalle(data.detalle_alcalde, votosGob, 'g'); // 🔥 alcalde
+    pintarDetalle(data.detalle_concejal, votosAsam, 'a'); // 🔥 concejal
+
+}else{
+
+    pintarDetalle(data.detalle_gob, votosGob, 'g');
+    pintarDetalle(data.detalle_asam, votosAsam, 'a');
+    pintarDetalle(data.detalle_asam_pob, votosAsamPob, 'ap');
+
+}
 
 
 /* ESCRIBIR EN PANEL */
