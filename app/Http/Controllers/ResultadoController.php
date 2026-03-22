@@ -204,9 +204,11 @@ GUARDAR VOTOS ESPECIALES (FIX)
             abort(403);
         }
 
-        $resultado = DB::table('resultados')
-            ->where('id_mesa', $id)
-            ->latest()
+        $resultado = DB::table('resultados as r')
+            ->join('mesas as m', 'r.id_mesa', '=', 'm.id_mesa')
+            ->where('r.id_mesa', $id)
+            ->orderByDesc('r.id_resultado')
+            ->select('r.*', 'm.numero_mesa')
             ->first();
 
         if (!$resultado) {

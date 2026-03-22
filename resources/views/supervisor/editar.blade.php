@@ -1,4 +1,9 @@
-<h3>Editar Mesa {{ $resultado->id_mesa }}</h3>
+<h3>
+    Editar Mesa
+    <span class="badge bg-primary">
+        {{ $resultado->numero_mesa }}
+    </span>
+</h3>
 
 <form id="formEditar">
     @csrf
@@ -43,7 +48,8 @@
                                     name="votos[{{ $v->id }}]"
                                     value="{{ $v->votos }}"
                                     class="form-control sumar {{ strtolower(str_replace(' ','_',$cargo)) }}"
-                                    min="0">
+                                    min="0"
+                                    step="1">
                             </td>
                         </tr>
                         @endforeach
@@ -76,7 +82,9 @@
                             <input type="number"
                                 name="especial[{{ strtolower(str_replace(' ','_',$cargo)) }}][blancos]"
                                 value="{{ $esp->blancos ?? 0 }}"
-                                class="form-control sumar {{ strtolower(str_replace(' ','_',$cargo)) }}">
+                                class="form-control sumar {{ strtolower(str_replace(' ','_',$cargo)) }}"
+                                min="0"
+                                step="1">
                         </div>
 
                         <div class="col-md-4">
@@ -84,7 +92,9 @@
                             <input type="number"
                                 name="especial[{{ strtolower(str_replace(' ','_',$cargo)) }}][nulos]"
                                 value="{{ $esp->nulos ?? 0 }}"
-                                class="form-control sumar {{ strtolower(str_replace(' ','_',$cargo)) }}">
+                                class="form-control sumar {{ strtolower(str_replace(' ','_',$cargo)) }}"
+                                min="0"
+                                step="1">
                         </div>
                     </div>
 
