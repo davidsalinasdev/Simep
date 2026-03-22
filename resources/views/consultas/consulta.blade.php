@@ -105,7 +105,7 @@ td:nth-child(2), td:nth-child(3){
 <div class="container-fluid mt-8">
     <div class="d-flex justify-content-between align-items-center">	
 
-        <h4 class="mb-3 d-none d-md-block" >Resultados Preliminares David Sp</h4>
+        <h4 class="mb-3 d-none d-md-block" >Resultados Preliminares</h4>
 		
 		<h4 class="mb-3 d-md-none" >SIMEP</h4>
 		

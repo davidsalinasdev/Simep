@@ -1,141 +1,112 @@
-@extends('layouts.app')
+<h3>Editar Mesa {{ $resultado->id_mesa }}</h3>
 
-<div class="container">
+<form id="formEditar">
+    @csrf
 
-    <h3>Editar Mesa {{ $resultado->id_mesa }}</h3>
+    <input type="hidden" name="id_resultado" value="{{ $resultado->id_resultado }}">
 
-    <form method="POST" action="/supervisor/actualizar">
-        @csrf
+    <div class="accordion">
 
-        <input type="hidden" name="id_resultado" value="{{ $resultado->id_resultado }}">
+        @php
+        $grupos = $votos->groupBy('nombre_cargo');
+        @endphp
 
-        <div class="accordion">
+        @foreach($grupos as $cargo => $items)
 
-            @php
-            $grupos = $votos->groupBy('nombre_cargo');
-            @endphp
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse">
+                    Votos {{ $cargo }}
+                </button>
+            </h2>
 
-            @foreach($grupos as $cargo => $items)
+            <div class="accordion-body">
 
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse">
-                        Votos {{ $cargo }}
-                    </button>
-                </h2>
+                <table class="table">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Partido</th>
+                            <th>Votos</th>
+                        </tr>
+                    </thead>
 
-                <div class="accordion-body">
+                    <tbody>
+                        @foreach($items as $v)
+                        <tr>
+                            <td>
+                                <strong>{{ $v->sigla }}</strong><br>
+                                <small>{{ $v->nombre }}</small>
+                            </td>
 
-                    <table class="table">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Partido</th>
-                                <th>Votos</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            @foreach($items as $v)
-                            <tr>
-                                <td>
-                                    <strong>{{ $v->sigla }}</strong><br>
-                                    <small>{{ $v->nombre }}</small>
-                                </td>
-
-                                <td>
-                                    <input type="number"
-                                        name="votos[{{ $v->id }}]"
-                                        value="{{ $v->votos }}"
-                                        class="form-control sumar {{ strtolower(str_replace(' ','_',$cargo)) }}"
-                                        min="0">
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-
-
-                    @php
-                    $map = [
-                    'gobernador' => 'Gobernador',
-                    'asambleista' => 'Asambleista',
-                    'asambleista_poblacion' => 'Asambleista Poblacion',
-                    'alcalde' => 'Alcalde',
-                    'concejal' => 'Concejal'
-                    ];
-
-                    $key = strtolower(str_replace(' ','_',$cargo));
-
-                    $nombreReal = $map[$key] ?? $cargo;
-
-                    $esp = $especiales->firstWhere('nombre_cargo', $nombreReal);
-                    @endphp
-
-
-                    <div class="card p-3">
-
-                        <div class="row">
-                            <div class="col-md-4">
-                                <label>Blancos</label>
+                            <td>
                                 <input type="number"
-                                    name="especial[{{ strtolower(str_replace(' ','_',$cargo)) }}][blancos]"
-                                    value="{{ $esp->blancos ?? 0 }}"
-                                    class="form-control sumar {{ strtolower(str_replace(' ','_',$cargo)) }}">
-                            </div>
+                                    name="votos[{{ $v->id }}]"
+                                    value="{{ $v->votos }}"
+                                    class="form-control sumar {{ strtolower(str_replace(' ','_',$cargo)) }}"
+                                    min="0">
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
 
-                            <div class="col-md-4">
-                                <label>Nulos</label>
-                                <input type="number"
-                                    name="especial[{{ strtolower(str_replace(' ','_',$cargo)) }}][nulos]"
-                                    value="{{ $esp->nulos ?? 0 }}"
-                                    class="form-control sumar {{ strtolower(str_replace(' ','_',$cargo)) }}">
-                            </div>
-                        </div>
 
-                        <div class="mt-2">
-                            <label>Total</label>
+                @php
+                $map = [
+                'gobernador' => 'Gobernador',
+                'asambleista' => 'Asambleista',
+                'asambleista_poblacion' => 'Asambleista Poblacion',
+                'alcalde' => 'Alcalde',
+                'concejal' => 'Concejal'
+                ];
+
+                $key = strtolower(str_replace(' ','_',$cargo));
+
+                $nombreReal = $map[$key] ?? $cargo;
+
+                $esp = $especiales->firstWhere('nombre_cargo', $nombreReal);
+                @endphp
+
+
+                <div class="card p-3">
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label>Blancos</label>
                             <input type="number"
-                                id="total_{{ strtolower(str_replace(' ','_',$cargo)) }}"
-                                class="form-control"
-                                readonly>
+                                name="especial[{{ strtolower(str_replace(' ','_',$cargo)) }}][blancos]"
+                                value="{{ $esp->blancos ?? 0 }}"
+                                class="form-control sumar {{ strtolower(str_replace(' ','_',$cargo)) }}">
                         </div>
 
+                        <div class="col-md-4">
+                            <label>Nulos</label>
+                            <input type="number"
+                                name="especial[{{ strtolower(str_replace(' ','_',$cargo)) }}][nulos]"
+                                value="{{ $esp->nulos ?? 0 }}"
+                                class="form-control sumar {{ strtolower(str_replace(' ','_',$cargo)) }}">
+                        </div>
+                    </div>
+
+                    <div class="mt-2">
+                        <label>Total</label>
+                        <input type="number"
+                            id="total_{{ strtolower(str_replace(' ','_',$cargo)) }}"
+                            class="form-control"
+                            readonly>
                     </div>
 
                 </div>
+
             </div>
-
-            @endforeach
-
         </div>
 
-        <button class="btn btn-success w-100 mt-3">
-            Guardar Corrección
-        </button>
+        @endforeach
 
-    </form>
+    </div>
 
-</div>
-<script>
-    function calcularTotales() {
+    <button class="btn btn-success w-100 mt-3">
+        Guardar Corrección
+    </button>
 
-        document.querySelectorAll('[id^="total_"]').forEach(totalInput => {
-
-            let clase = totalInput.id.replace('total_', '');
-            let total = 0;
-
-            document.querySelectorAll('.' + clase).forEach(i => {
-                total += parseInt(i.value) || 0;
-            });
-
-            totalInput.value = total;
-        });
-    }
-
-    document.querySelectorAll('.sumar').forEach(i => {
-        i.addEventListener('input', calcularTotales);
-    });
-
-    // ejecutar al cargar
-    calcularTotales();
-</script>
+</form>
