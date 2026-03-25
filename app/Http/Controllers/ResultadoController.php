@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 
@@ -12,6 +13,13 @@ class ResultadoController extends Controller
 {
     public function store(Request $request)
     {
+
+        // $password = '*123ab678';
+
+        // $hash = Hash::make($password);
+
+        // dd($hash);
+
         $request->validate([
             'id_mesa' => 'required|exists:mesas,id_mesa',
             'imagen_acta' => 'nullable|image|mimes:jpg,jpeg,png|max:20480',

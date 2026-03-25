@@ -100,6 +100,12 @@ td {
 td:nth-child(2), td:nth-child(3){
     text-align: right;
 }
+td:nth-child(2){
+    display: none;
+}
+tr:has(td b) {
+    display: none;
+}
 </style>
 
 <div class="container-fluid mt-8">
@@ -450,11 +456,10 @@ const graficoGob = new Chart(ctx, {
 				},
 
 				formatter: function(value, context){
-
 					let total = context.dataset.data.reduce((a,b)=>a+b,0);
 					let porcentaje = ((value / total) * 100).toFixed(1);
 
-					return value + " votos (" + porcentaje + "%)";
+					return porcentaje + "%";
 				}
 			}
 
@@ -547,11 +552,9 @@ const graficoAsam = new Chart(ctx2, {
 				},
 
 				formatter: function(value, context){
-
-					let total = context.dataset.data.reduce((a,b)=>a+b,0);
 					let porcentaje = ((value / totalAsam) * 100).toFixed(1);
 
-					return value + " votos (" + porcentaje + "%)";
+					return porcentaje + "%";
 				}
 			}
         }
@@ -632,11 +635,9 @@ const graficoAsamPob = new Chart(ctx3, {
 				},
 
 				formatter: function(value, context){
-
-					let total = context.dataset.data.reduce((a,b)=>a+b,0);
 					let porcentaje = ((value / totalAsamPobl) * 100).toFixed(1);
 
-					return value + " votos (" + porcentaje + "%)";
+					return porcentaje + "%";
 				}
 			}
 
